@@ -6,8 +6,8 @@ from qrcode.models import QrCode, QrCodeUsuario
 from ambiente.models import Ambiente
 from datetime import datetime
 from usuarios.models import Usuario
+from tools.views import sql_executa
 
-# Create your views here
 def acesso(request):
     if request.method == 'POST':
         form = AcessoForm(request.POST)
@@ -32,6 +32,7 @@ def acesso(request):
                 ).exists()
 
                 if usuario_permitido:
+                    inserir_acesso(data_atual, 'A', ambiente.id, usuario.id)
                     return JsonResponse({
                         'status': 'autorizado',
                         'mensagem': f'Acesso autorizado ao ambiente {ambiente.nome}',
@@ -39,11 +40,13 @@ def acesso(request):
                         'codigo': qrcode.codigo
                     })
                 else:
+                    inserir_acesso(data_atual, 'N', ambiente.id, usuario.id)
                     return JsonResponse({
                         'status': 'negado',
                         'mensagem': 'Você não tem permissão para acessar este ambiente'
                     })
             else:
+                inserir_acesso(data_atual, 'N', ambiente.id, usuario.id)
                 return JsonResponse({
                     'status': 'negado',
                     'mensagem': 'Não há QR Code válido para este ambiente'
@@ -56,3 +59,16 @@ def acesso(request):
     else:
         form = AcessoForm()
         return render(request, 'acesso/templates/acess.html', {'form': form})
+
+def inserir_acesso(data_hora, status, ambiente, usuario):
+    # Verifica se o ambiente existe
+    try:
+        sql = """
+            INSERT INTO acesso (data_hora, status, ambiente_id, usuario_id)
+            VALUES (%s, %s, %s, %s)
+        """
+        sql_executa(sql, [data_hora, status, ambiente, usuario])     
+    except Exception as e:
+        print(f"Erro ao inserir acesso: {e}")
+
+

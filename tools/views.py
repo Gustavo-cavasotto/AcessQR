@@ -598,8 +598,6 @@ def sql_executa(sql, parametros=[]):
     cursor_ret = connection.cursor()
 
     if parametros:
-        # query_with_params = cursor_ret.mogrify(sql, parametros)
-        print("🎲 SQL_EXECUTA:", sql, parametros)
         cursor_ret.execute(sql, parametros)
     else:
         cursor_ret.execute(sql)
