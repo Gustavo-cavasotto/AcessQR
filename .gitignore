@@ -3,3 +3,5 @@ venv_acessqr
 *.idea
 .vscode/
 *.log
+*.env
+.env
