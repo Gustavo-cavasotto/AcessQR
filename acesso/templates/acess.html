@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex align-items-center mb-4">
+        <i class="bi bi-door-open fs-2 me-3 text-primary"></i>
+        <div>
+            <h2 class="mb-0 fw-bold">Acesso ao Ambiente</h2>
+            <p class="text-muted mb-0">Selecione o ambiente para verificar o acesso</p>
+        </div>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form id="acessoForm" method="post">
+                {% csrf_token %}
+
+                <div class="form-group mb-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-building me-2 text-primary"></i>
+                        {{form.ambiente|as_crispy_field}}
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg"></i> Verificar Acesso
+                    </button>
+                </div>
+            </form>
+
+            <div id="resultadoAcesso" class="mt-4" style="display: none;">
+                <div class="alert" role="alert">
+                    <h4 class="alert-heading"></h4>
+                    <p class="mb-0"></p>
+                </div>
+                <div id="qrcodeContainer" class="text-center mt-3" style="display: none;">
+                    <div id="qrcode"></div>
+                    <p class="mt-2 text-muted">Apresente este QR Code para acessar o ambiente</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Inclui a biblioteca QR Code -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+
+<script>
+    document.getElementById('acessoForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+
+        fetch('{% url "verificar_acesso" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                const resultadoDiv = document.getElementById('resultadoAcesso');
+                const alertDiv = resultadoDiv.querySelector('.alert');
+                const heading = alertDiv.querySelector('.alert-heading');
+                const message = alertDiv.querySelector('p');
+                const qrcodeContainer = document.getElementById('qrcodeContainer');
+
+                resultadoDiv.style.display = 'block';
+
+                if (data.status === 'autorizado') {
+                    alertDiv.className = 'alert alert-success';
+                    heading.textContent = 'Acesso Autorizado!';
+                    message.textContent = data.mensagem;
+
+                    // Gera e exibe o QR Code
+                    qrcodeContainer.style.display = 'block';
+                    const qrcodeDiv = document.getElementById('qrcode');
+                    qrcodeDiv.innerHTML = ''; // Limpa qualquer QR Code anterior
+
+                    const qr = qrcode(0, 'M');
+                    qr.addData(data.codigo);
+                    qr.make();
+                    qrcodeDiv.innerHTML = qr.createImgTag(8);
+                } else {
+                    alertDiv.className = 'alert alert-danger';
+                    heading.textContent = 'Acesso Negado';
+                    message.textContent = data.mensagem;
+                    qrcodeContainer.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+            });
+    });
+</script>
+{% endblock %}

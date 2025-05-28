@@ -1,0 +1,99 @@
+{% load static %}
+<nav class="sidebar bg-white shadow-sm border-end" style="width: 280px; min-height: 100vh;">
+    <div class="d-flex flex-column h-100">
+        <!-- Logo -->
+        <div class="p-3 text-center">
+            <img src="{% static 'img/acessqr_logo.png' %}" alt="AcessQR Logo" class="img-fluid"
+                style="max-width: 180px;">
+        </div>
+
+        <hr class="mx-3 my-2">
+
+        <!-- Menu Items -->
+        <ul class="nav nav-pills flex-column p-3 gap-2">
+            <li class="nav-item">
+                <a href="{% url 'home' %}"
+                    class="nav-link {% if request.path == '/' %}active{% else %}link-dark{% endif %} d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Home</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'verificar_acesso' %}" class="nav-link link-dark d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-door-open"></i>
+                    <span>Acessar Ambiente</span>
+                </a>
+            </li>
+            {% if request.session.usuario_tipo == 'A' %}
+            <li class="nav-item">
+                <a href="{% url 'listar_ambientes' %}" class="nav-link link-dark d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-warehouse"></i>
+                    <span>Ambiente</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'listar_qrcodes' %}" class="nav-link link-dark d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-qrcode"></i>
+                    <span>Gerenciar Acessos</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'listar_usuarios' %}" class="nav-link link-dark d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-user"></i>
+                    <span>Gerenciar Usuários</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link link-dark d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-file-lines"></i>
+                    <span>Relatórios</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+
+        <hr class="mx-3 my-2 mt-auto">
+
+        <!-- User Profile -->
+        <div id="user-profile" class="p-3">
+            <div class="dropdown">
+                <button class="btn btn-light w-100 d-flex align-items-center gap-2 justify-content-between"
+                    type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="d-flex align-items-center gap-2">
+                        <img src="{% static 'img/no-user.png' %}" alt="User Avatar" width="32" height="32"
+                            class="rounded-circle">
+                        <span class="fw-medium text-truncate">{{request.session.usuario_nome}}</span>
+
+                        {% if request.session.usuario_tipo == 'A' %}
+                        <span class="badge bg-danger">Admin</span>
+                        {% elif request.session.usuario_tipo == 'U' %}
+                        <span class="badge bg-primary">Usuário</span>
+                        {% elif request.session.usuario_tipo == 'F' %}
+                        <span class="badge bg-success">Funcionário</span>
+                        {% elif request.session.usuario_tipo == 'H' %}
+                        <span class="badge bg-warning">Hóspede</span>
+                        {% endif %}
+                    </div>
+                    <i class="fa-solid fa-chevron-down opacity-50"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm w-100">
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2" href="#">
+                            <i class="fa-solid fa-user"></i>
+                            <span>Perfil</span>
+                        </a>
+                    </li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2 text-danger" href="{% url 'logout' %}">
+                            <i class="fa-solid fa-power-off"></i>
+                            <span>Logout</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>

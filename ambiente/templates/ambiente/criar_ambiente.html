@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex align-items-center mb-4">
+        <i class="bi bi-building-add fs-2 me-3 text-primary"></i>
+        <div>
+            <h2 class="mb-0 fw-bold">Criar Novo Ambiente</h2>
+            <p class="text-muted mb-0">Preencha os dados para criar um novo ambiente</p>
+        </div>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="form-group mb-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-building me-2 text-primary"></i>
+                        {{form.nome|as_crispy_field}}
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-geo-alt me-2 text-primary"></i>
+                        {{form.localizacao|as_crispy_field}}
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg"></i> Salvar
+                    </button>
+                    <a href="{% url 'listar_ambientes' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-lg"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

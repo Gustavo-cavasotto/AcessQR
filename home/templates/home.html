@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container-fluid px-4">
+    <!-- Cabeçalho com Estatísticas -->
+    <div class="row g-3 my-3">
+        <div class="col-md-3">
+            <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
+                <div>
+                    <h3 class="fs-2">{{ total_acessos }}</h3>
+                    <p class="fs-5">Acessos Hoje</p>
+                </div>
+                <i class="fas fa-qrcode fs-1 text-primary border rounded-full bg-primary bg-opacity-10 p-3"></i>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
+                <div>
+                    <h3 class="fs-2">{{ total_usuarios }}</h3> 
+                    <p class="fs-5">Usuários</p>
+                </div>
+                <i class="fas fa-users fs-1 text-success border rounded-full bg-success bg-opacity-10 p-3"></i>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
+                <div>
+                    <h3 class="fs-2">{{ total_ambientes }}</h3>
+                    <p class="fs-5">Ambientes</p>
+                </div>
+                <i class="fas fa-door-open fs-1 text-warning border rounded-full bg-warning bg-opacity-10 p-3"></i>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
+                <div>
+                    <h3 class="fs-2">{{ total_qrcodes_ativos }}</h3>
+                    <p class="fs-5">QR Codes Ativos</p>
+                </div>
+                <i class="fas fa-key fs-1 text-danger border rounded-full bg-danger bg-opacity-10 p-3"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Área Principal -->
+    <div class="row g-3 my-3">
+        <!-- Últimos Acessos -->
+        <div class="col-md-8">
+            <div class="bg-white shadow-sm p-3 rounded">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Últimos Acessos</h5>
+                    {% if usuario.tipo == 'A' %}
+                    <a href="#" class="btn btn-sm btn-primary">Ver Todos</a>
+                    {% endif %}
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Usuário</th>
+                                <th>Ambiente</th>
+                                <th>Data/Hora</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for acesso in ultimos_acessos %}
+                            <tr>
+                                <td>{{ acesso.usuario.nome }}</td>
+                                <td>{{ acesso.ambiente.nome }}</td>
+                                <td>{{ acesso.data_hora|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    {% if acesso.status == 'autorizado' %}
+                                    <span class="badge bg-success">Autorizado</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Negado</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center">Nenhum acesso registrado</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Área Lateral -->
+        <div class="col-md-4">
+            <!-- Ações Rápidas -->
+            <div class="bg-white shadow-sm p-3 rounded">
+                <h5 class="mb-3">Ações Rápidas</h5>
+                {% if usuario.tipo == 'A' %}
+                <!-- Ações do Administrador -->
+                <div class="d-grid gap-2">
+                    <a href="#" class="btn btn-primary d-flex align-items-center gap-2">
+                        <i class="fas fa-user-plus"></i>
+                        Gerenciar Usuários
+                    </a>
+                    <a href="#" class="btn btn-info d-flex align-items-center gap-2 text-white">
+                        <i class="fas fa-qrcode"></i>
+                        Gerenciar QR Codes
+                    </a>
+                    <a href="#" class="btn btn-success d-flex align-items-center gap-2">
+                        <i class="fas fa-file-alt"></i>
+                        Gerar Relatórios
+                    </a>
+                    <a href="#" class="btn btn-warning d-flex align-items-center gap-2">
+                        <i class="fas fa-cog"></i>
+                        Configurações
+                    </a>
+                </div>
+                {% else %}
+                <!-- Ações do Usuário -->
+                <div class="d-grid gap-2">
+                    <a href="#" class="btn btn-primary d-flex align-items-center gap-2">
+                        <i class="fas fa-history"></i>
+                        Meu Histórico
+                    </a>
+                    <a href="#" class="btn btn-info d-flex align-items-center gap-2 text-white">
+                        <i class="fas fa-qrcode"></i>
+                        Meus QR Codes
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- QR Codes Recentes -->
+            <div class="bg-white shadow-sm p-3 rounded mt-3">
+                <h5 class="mb-3">QR Codes Recentes</h5>
+                <div class="qrcode-list">
+                    {% for qr in qrcodes %}
+                    <div class="d-flex align-items-center border-bottom py-2">
+                        <div class="flex-shrink-0">
+                            <i
+                                class="fas fa-qrcode {% if qr.status == 'A' %}text-success{% elif qr.status == 'E' %}text-warning{% else %}text-danger{% endif %}"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <p class="mb-0 small">{{ qr.codigo }}</p>
+                            <small class="text-muted">Válido até: {{ qr.validade|date:"d/m/Y H:i" }}</small>
+                        </div>
+                        <div class="ms-2">
+                            <span
+                                class="badge {% if qr.status == 'A' %}bg-success{% elif qr.status == 'E' %}bg-warning{% else %}bg-danger{% endif %}">
+                                {{ qr.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center mb-0">Nenhum QR Code encontrado</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if usuario.tipo == 'A' and usuarios_por_tipo %}
+            <!-- Estatísticas de Usuários (Apenas Admin) -->
+            <div class="bg-white shadow-sm p-3 rounded mt-3">
+                <h5 class="mb-3">Distribuição de Usuários</h5>
+                <div class="mb-2">
+                    <label class="d-flex justify-content-between">
+                        <span>Administradores</span>
+                        <span>{{ usuarios_por_tipo.administradores }}</span>
+                    </label>
+                    <div class="progress">
+                        <div class="progress-bar bg-primary"
+                            style="width: {% widthratio usuarios_por_tipo.administradores total_usuarios 100 %}%"></div>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="d-flex justify-content-between">
+                        <span>Funcionários</span>
+                        <span>{{ usuarios_por_tipo.funcionarios }}</span>
+                    </label>
+                    <div class="progress">
+                        <div class="progress-bar bg-success"
+                            style="width: {% widthratio usuarios_por_tipo.funcionarios total_usuarios 100 %}%"></div>
+                    </div>
+                </div>
+                <div>
+                    <label class="d-flex justify-content-between">
+                        <span>Hóspedes</span>
+                        <span>{{ usuarios_por_tipo.hospedes }}</span>
+                    </label>
+                    <div class="progress">
+                        <div class="progress-bar bg-info"
+                            style="width: {% widthratio usuarios_por_tipo.hospedes total_usuarios 100 %}%"></div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,70 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro Lave Tu Mesmo</title>
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div style="justify-content: space-around;" class="container-fluid d-flex align-items-center">
+        <img width="200px" height="200px" src="{% static 'img/lave-tu-mesmo-logo.png' %}" alt="">
+
+        <div style="width: 50%; height: 50%; margin-top: 30px;" class="card">
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="card-header">
+                    <h3 class="card-title">Cadastro de Usuário</h3>
+                </div>
+
+                <div class="card-body">
+                    {{form|crispy}}
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-primary" type="submit">Cadastrar</button>
+                    <a style="margin-top: 15px;">Já possui uma conta? <a href="{% url 'login' %}"
+                            class="text-primary">Faça login</a></a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</body>
+{% for message in messages %}
+{% if message.tags == 'success' %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.all.min.js"></script>
+<script>
+    alert('teste')
+    var m = "{{ message }}";
+    Swal.fire({
+        icon: 'success',
+        title: m,
+        background: 'rgb(28, 200, 138)',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+    })       
+</script>
+{% endif %}
+{% endfor %}
+
+</html>
+<!-- Bootstrap JS -->
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/sidebars.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.2/dist/chart.umd.js"
+    integrity="sha384-eI7PSr3L1XLISH8JdDII5YN/njoSsxfbrkCTnJrzXt+ENP5MOVBxD+l6sEG4zoLp"
+    crossorigin="anonymous"></script>

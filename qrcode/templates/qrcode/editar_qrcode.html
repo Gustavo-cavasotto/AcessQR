@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex align-items-center mb-4">
+        <i class="bi bi-qr-code-scan fs-2 me-3 text-primary"></i>
+        <div>
+            <h2 class="mb-0 fw-bold">Editar QR Code</h2>
+            <p class="text-muted mb-0">Atualize os dados do QR Code {{ qrcode.codigo }}</p>
+        </div>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-upc-scan me-2 text-primary"></i>
+                                {{form.codigo|as_crispy_field}}
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-calendar-event me-2 text-primary"></i>
+                                {{form.validade_inicio|as_crispy_field}}
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-calendar-event me-2 text-primary"></i>
+                                {{form.validade_fim|as_crispy_field}}
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-toggle-on me-2 text-primary"></i>
+                                {{form.status|as_crispy_field}}
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-building me-2 text-primary"></i>
+                                {{form.ambiente|as_crispy_field}}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-people me-2 text-primary"></i>
+                                <label class="form-label">Usuários Permitidos</label>
+                            </div>
+                            {{form.usuarios_permitidos|as_crispy_field}}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg"></i> Salvar Alterações
+                    </button>
+                    <a href="{% url 'listar_qrcodes' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-lg"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Inclui o Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('.select2').select2({
+            placeholder: 'Digite para buscar usuários...',
+            allowClear: true,
+            width: '100%',
+            language: {
+                noResults: function () {
+                    return "Nenhum usuário encontrado";
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-qr-code fs-2 me-3 text-primary"></i>
+            <div>
+                <h2 class="mb-0 fw-bold">QR Codes</h2>
+                <p class="text-muted mb-0">Gerencie os QR Codes do sistema</p>
+            </div>
+        </div>
+        <a href="{% url 'criar_qrcode' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Novo QR Code
+        </a>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Código</th>
+                            <th scope="col">Validade</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Ambiente</th>
+                            <th scope="col">Usuários Permitidos</th>
+                            <th scope="col" class="text-end">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for qrcode in qrcodes %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-qr-code fs-4 me-2 text-secondary"></i>
+                                    {{ qrcode.codigo }}
+                                </div>
+                            </td>
+                            <td>{{ qrcode.validade_inicio|date:"d/m/Y H:i" }} - {{ qrcode.validade_fim|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if qrcode.status == 'A' %}
+                                <span class="badge bg-success">Ativo</span>
+                                {% elif qrcode.status == 'E' %}
+                                <span class="badge bg-warning">Expirado</span>
+                                {% else %}
+                                <span class="badge bg-danger">Revogado</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ qrcode.ambiente.nome }}</td>
+                            <td>
+                                {% for usuario in qrcode.usuarios_permitidos.all %}
+                                <span class="badge bg-info me-1">{{ usuario.usuario.nome }}</span>
+                                {% endfor %}
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'editar_qrcode' qrcode.id %}" class="btn btn-sm btn-warning me-1">
+                                    <i class="bi bi-pencil-square"></i> Editar
+                                </a>
+                                <button
+                                    onclick="confirmarExclusao('{{ qrcode.codigo }}', '{% url 'excluir_qrcode' qrcode.id %}')"
+                                    class="btn btn-sm btn-danger">
+                                    <i class="bi bi-trash-fill"></i> Excluir
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">Nenhum QR Code encontrado</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmarExclusao(codigo, url) {
+        Swal.fire({
+            title: 'Confirmar exclusão',
+            text: `Deseja realmente excluir o QR Code "${codigo}"?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sim, excluir!',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = url;
+            }
+        });
+    }
+</script>
+{% endblock %}
