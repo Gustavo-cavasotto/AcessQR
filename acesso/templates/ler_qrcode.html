@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex align-items-center mb-4">
+        <i class="bi bi-qr-code-scan fs-2 me-3 text-primary"></i>
+        <div>
+            <h2 class="mb-0 fw-bold">Leitor de QR Code</h2>
+            <p class="text-muted mb-0">Escolha uma opção para validar o QR Code</p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <!-- Token CSRF -->
+            {% csrf_token %}
+
+            <!-- Opções de leitura -->
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="bi bi-qr-code-scan fs-1 text-primary mb-3"></i>
+                            <h5 class="card-title">Escanear QR Code</h5>
+                            <p class="card-text text-muted">Leia o QR Code em tempo real</p>
+                            <button id="btnEscanear" class="btn btn-primary">
+                                <i class="bi bi-camera"></i> Iniciar Escaneamento
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="bi bi-upload fs-1 text-primary mb-3"></i>
+                            <h5 class="card-title">Upload de Imagem</h5>
+                            <p class="card-text text-muted">Selecione uma imagem do QR Code</p>
+                            <input type="file" id="fileInput" accept="image/*" class="d-none">
+                            <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                                <i class="bi bi-upload"></i> Selecionar Arquivo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Área do Scanner -->
+            <div id="scannerArea" class="mb-4" style="display: none;">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title mb-0">Escanear QR Code</h5>
+                            <button class="btn btn-danger btn-sm" onclick="pararScanner()">
+                                <i class="bi bi-x-circle"></i> Parar
+                            </button>
+                        </div>
+                        <div id="reader" class="mb-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview da imagem -->
+            <div id="imagePreview" class="text-center mb-4" style="display: none;">
+                <img id="preview" class="img-fluid rounded" style="max-height: 300px;">
+                <div class="mt-2">
+                    <button class="btn btn-danger btn-sm" onclick="cancelarImagem()">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </button>
+                </div>
+            </div>
+
+            <div id="statusLeitura" class="alert alert-info" style="display: none;">
+                <i class="bi bi-info-circle"></i> <span id="statusText">Processando QR Code...</span>
+            </div>
+
+            <div id="resultadoAcesso" class="mt-4" style="display: none;">
+                <div class="alert" role="alert">
+                    <h4 class="alert-heading"></h4>
+                    <p class="mb-0"></p>
+                    <hr>
+                    <div class="detalhes-acesso">
+                        <p class="mb-1"><strong>Ambiente:</strong> <span id="ambienteNome"></span></p>
+                        <p class="mb-1"><strong>Data/Hora:</strong> <span id="dataHora"></span></p>
+                        <p class="mb-1"><strong>Status:</strong> <span id="statusAcesso"></span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Inclui as bibliotecas -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+
+<script>
+    let html5QrCode = null;
+    let isScanning = false;
+
+    // Função para obter o token CSRF
+    function getCSRFToken() {
+        const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+        return csrfInput ? csrfInput.value : '';
+    }
+
+    // Função para iniciar o scanner
+    function iniciarScanner() {
+        if (isScanning) return;
+
+        const scannerArea = document.getElementById('scannerArea');
+        const btnEscanear = document.getElementById('btnEscanear');
+
+        // Mostra a área do scanner e esconde o botão
+        scannerArea.style.display = 'block';
+        btnEscanear.style.display = 'none';
+
+        // Configuração do scanner
+        html5QrCode = new Html5Qrcode("reader");
+        const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0
+        };
+
+        // Inicia o scanner
+        html5QrCode.start(
+            { facingMode: "environment" },
+            config,
+            onScanSuccess,
+            onScanFailure
+        );
+        isScanning = true;
+    }
+
+    // Função para parar o scanner
+    function pararScanner() {
+        if (html5QrCode && isScanning) {
+            html5QrCode.stop().then(() => {
+                isScanning = false;
+                document.getElementById('scannerArea').style.display = 'none';
+                document.getElementById('btnEscanear').style.display = 'block';
+            });
+        }
+    }
+
+    // Função para processar a imagem
+    async function processarImagem(file) {
+        try {
+            // Mostra o preview da imagem
+            const preview = document.getElementById('preview');
+            const imagePreview = document.getElementById('imagePreview');
+            preview.src = URL.createObjectURL(file);
+            imagePreview.style.display = 'block';
+
+            // Mostra o status de processamento
+            const statusDiv = document.getElementById('statusLeitura');
+            const statusText = document.getElementById('statusText');
+            statusDiv.style.display = 'block';
+            statusText.textContent = 'Processando imagem...';
+
+            // Aguarda a imagem carregar
+            await new Promise((resolve) => {
+                preview.onload = resolve;
+            });
+
+            // Cria um canvas para processar a imagem
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = preview.naturalWidth;
+            canvas.height = preview.naturalHeight;
+            context.drawImage(preview, 0, 0, canvas.width, canvas.height);
+
+            // Obtém os dados da imagem
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+            // Tenta ler o QR Code
+            const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: "dontInvert",
+            });
+
+            if (code) {
+                console.log('QR Code detectado:', code.data);
+                await enviarCodigo(code.data);
+            } else {
+                throw new Error('QR Code não encontrado na imagem');
+            }
+        } catch (error) {
+            console.error('Erro ao processar imagem:', error);
+            const statusDiv = document.getElementById('statusLeitura');
+            const statusText = document.getElementById('statusText');
+            statusDiv.className = 'alert alert-danger';
+            statusText.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Não foi possível detectar um QR Code válido na imagem. Por favor, tente novamente.';
+        }
+    }
+
+    // Função para enviar o código ao servidor
+    async function enviarCodigo(codigo) {
+        console.log('Enviando código:', codigo);
+        try {
+            const csrfToken = getCSRFToken();
+            if (!csrfToken) {
+                throw new Error('Token CSRF não encontrado');
+            }
+
+            const response = await fetch('{% url "validar_qrcode" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    codigo: codigo
+                })
+            });
+
+            const data = await response.json();
+            console.log('Dados recebidos:', data);
+
+            const resultadoDiv = document.getElementById('resultadoAcesso');
+            const alertDiv = resultadoDiv.querySelector('.alert');
+            const heading = alertDiv.querySelector('.alert-heading');
+            const message = alertDiv.querySelector('p');
+
+            // Esconde o status de processamento
+            document.getElementById('statusLeitura').style.display = 'none';
+            resultadoDiv.style.display = 'block';
+
+            if (data.status === 'autorizado') {
+                alertDiv.className = 'alert alert-success';
+                heading.textContent = 'Acesso Autorizado!';
+                message.textContent = data.mensagem;
+
+                document.getElementById('ambienteNome').textContent = data.ambiente || 'N/A';
+                document.getElementById('dataHora').textContent = data.data_hora || new Date().toLocaleString();
+                document.getElementById('statusAcesso').textContent = 'Autorizado';
+                document.getElementById('statusAcesso').className = 'text-success';
+            } else {
+                alertDiv.className = 'alert alert-danger';
+                heading.textContent = 'Acesso Negado';
+                message.textContent = data.mensagem;
+
+                document.getElementById('ambienteNome').textContent = data.ambiente || 'N/A';
+                document.getElementById('dataHora').textContent = data.data_hora || new Date().toLocaleString();
+                document.getElementById('statusAcesso').textContent = 'Negado';
+                document.getElementById('statusAcesso').className = 'text-danger';
+            }
+
+            // Se estiver escaneando, para o scanner após 3 segundos
+            if (isScanning) {
+                setTimeout(pararScanner, 3000);
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            const statusDiv = document.getElementById('statusLeitura');
+            const statusText = document.getElementById('statusText');
+            statusDiv.className = 'alert alert-danger';
+            statusText.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Erro ao processar o QR Code: ' + error.message;
+        }
+    }
+
+    // Função para cancelar a imagem selecionada
+    function cancelarImagem() {
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('preview').src = '';
+        document.getElementById('fileInput').value = '';
+        document.getElementById('statusLeitura').style.display = 'none';
+        document.getElementById('resultadoAcesso').style.display = 'none';
+    }
+
+    // Função chamada quando um QR Code é detectado pelo scanner
+    async function onScanSuccess(decodedText, decodedResult) {
+        console.log('QR Code detectado:', decodedText);
+        await enviarCodigo(decodedText);
+    }
+
+    // Função chamada quando há erro na leitura
+    function onScanFailure(error) {
+        console.warn(`Erro na leitura do QR Code: ${error}`);
+    }
+
+    // Event listeners
+    document.getElementById('btnEscanear').addEventListener('click', iniciarScanner);
+    document.getElementById('fileInput').addEventListener('change', function (e) {
+        if (e.target.files.length > 0) {
+            processarImagem(e.target.files[0]);
+        }
+    });
+</script>
+{% endblock %}

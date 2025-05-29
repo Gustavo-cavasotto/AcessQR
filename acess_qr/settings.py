@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
     'rest_framework',
     'crispy_forms',
     'crispy_bootstrap5',
@@ -161,6 +162,8 @@ CORS_ALLOW_ALL_ORIGINS = True  # Apenas para desenvolvimento
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React default port
 ]
+ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['https://8036-177-87-32-112.ngrok-free.app']
 
 # Configurações do REST Framework
 REST_FRAMEWORK = {
