@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex align-items-center mb-4">
+        <i class="bi bi-shield-lock fs-2 me-3 text-primary"></i>
+        <div>
+            <h2 class="mb-0 fw-bold">Gerenciar Alçadas</h2>
+            <p class="text-muted mb-0">Configure os ambientes que {{ usuario.nome }} pode acessar</p>
+        </div>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        Adicionar Alçada
+                    </h5>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div style="margin-top: 32px;">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-lg"></i> Adicionar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">
+                        <i class="bi bi-list-check me-2"></i>
+                        Alçadas Atuais
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Ambiente</th>
+                                    <th class="text-end">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for alcada in alcadas %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-building me-2 text-primary"></i>
+                                            {{ alcada.ambiente.nome }}
+                                        </div>
+                                    </td>
+                                    <td class="text-end">
+                                        <button
+                                            onclick="confirmarExclusao('{{ alcada.ambiente.nome }}', '{% url 'excluir_alcada' usuario.id alcada.id %}')"
+                                            class="btn btn-sm btn-danger">
+                                            <i class="bi bi-trash-fill"></i> Remover
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="2" class="text-center">Nenhuma alçada definida</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'listar_usuarios' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Voltar para Lista de Usuários
+        </a>
+    </div>
+</div>
+
+<script>
+    function confirmarExclusao(nome, url) {
+        Swal.fire({
+            title: 'Confirmar exclusão',
+            text: `Deseja realmente remover o acesso ao ambiente "${nome}"?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sim, remover!',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = url;
+            }
+        });
+    }
+</script>
+{% endblock %}

@@ -1,5 +1,6 @@
 from django import forms
-from .models import Usuario
+from .models import Usuario, UsuarioAlcada
+from ambiente.models import Ambiente
 
 
 class UsuarioForm(forms.ModelForm):
@@ -18,3 +19,12 @@ class UsuarioForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'tipo': forms.Select(attrs={'class': 'form-control'}),
         }
+
+class UsuarioAlcadaForm(forms.ModelForm):
+    class Meta:
+        model = UsuarioAlcada
+        fields = ['ambiente']
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['ambiente'].widget.attrs.update({'class': 'form-select'})

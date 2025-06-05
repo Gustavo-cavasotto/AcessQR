@@ -9,9 +9,10 @@ from usuarios.models import Usuario
 from tools.views import sql_executa
 import json
 
+@login_required
 def acesso(request):
     if request.method == 'POST':
-        form = AcessoForm(request.POST)
+        form = AcessoForm(request.POST, usuario_id=request.session['usuario_id'])
         if form.is_valid():
             ambiente = form.cleaned_data['ambiente']
             usuario = Usuario.objects.get(id=request.session['usuario_id'])
@@ -58,7 +59,7 @@ def acesso(request):
                 'mensagem': 'Dados inválidos'
             }, status=400)
     else:
-        form = AcessoForm()
+        form = AcessoForm(usuario_id=request.session['usuario_id'])
         return render(request, 'acesso/templates/acess.html', {'form': form})
 
 def inserir_acesso(data_hora, status, ambiente, usuario):

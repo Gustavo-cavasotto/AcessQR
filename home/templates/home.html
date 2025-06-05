@@ -4,6 +4,7 @@
 
 <div class="container-fluid px-4">
     <!-- Cabeçalho com Estatísticas -->
+    {% if usuario.tipo == 'A' %}
     <div class="row g-3 my-3">
         <div class="col-md-3">
             <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
@@ -34,7 +35,7 @@
                 <i class="fas fa-door-open fs-1 text-warning border rounded-full bg-warning bg-opacity-10 p-3"></i>
             </div>
         </div>
-
+        
         <div class="col-md-3">
             <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
                 <div>
@@ -44,6 +45,7 @@
                 <i class="fas fa-key fs-1 text-danger border rounded-full bg-danger bg-opacity-10 p-3"></i>
             </div>
         </div>
+        {% endif %}
     </div>
 
     <!-- Área Principal -->
@@ -74,7 +76,7 @@
                                 <td>{{ acesso.ambiente.nome }}</td>
                                 <td>{{ acesso.data_hora|date:"d/m/Y H:i" }}</td>
                                 <td>
-                                    {% if acesso.status == 'autorizado' %}
+                                    {% if acesso.status == 'A' %}
                                     <span class="badge bg-success">Autorizado</span>
                                     {% else %}
                                     <span class="badge bg-danger">Negado</span>
@@ -92,6 +94,7 @@
             </div>
         </div>
 
+        {% if usuario.tipo == 'A' %}
         <!-- Área Lateral -->
         <div class="col-md-4">
             <!-- Ações Rápidas -->
@@ -158,6 +161,7 @@
                     {% endfor %}
                 </div>
             </div>
+            {% endif %}
 
             {% if usuario.tipo == 'A' and usuarios_por_tipo %}
             <!-- Estatísticas de Usuários (Apenas Admin) -->

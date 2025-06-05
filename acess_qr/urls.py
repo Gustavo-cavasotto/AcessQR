@@ -25,4 +25,5 @@ urlpatterns = [
     path('usuarios/', include('usuarios.urls')),
     path('qrcode/', include('qrcode.urls')),
     path('acesso/', include('acesso.urls')),
+    path('relatorios/', include('relatorios.urls')),
 ]

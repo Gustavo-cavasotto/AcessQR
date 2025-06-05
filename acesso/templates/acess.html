@@ -21,6 +21,7 @@
 
     <div class="card shadow-sm">
         <div class="card-body">
+            {% if form.ambiente.field.queryset %}
             <form id="acessoForm" method="post">
                 {% csrf_token %}
 
@@ -48,6 +49,12 @@
                     <p class="mt-2 text-muted">Apresente este QR Code para acessar o ambiente</p>
                 </div>
             </div>
+            {% else %}
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                Você não tem acesso a nenhum ambiente. Entre em contato com o administrador do sistema.
+            </div>
+            {% endif %}
 
             <a href="{% url 'ler_qrcode' %}" class="btn btn-primary">
                 <i class="bi bi-qr-code-scan"></i> Ler QR Code
@@ -60,7 +67,7 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 
 <script>
-    document.getElementById('acessoForm').addEventListener('submit', function (e) {
+    document.getElementById('acessoForm')?.addEventListener('submit', function (e) {
         e.preventDefault();
 
         const formData = new FormData(this);

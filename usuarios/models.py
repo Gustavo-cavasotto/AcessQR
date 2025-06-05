@@ -1,4 +1,5 @@
 from django.db import models
+from ambiente.models import Ambiente
 
 # Create your models here.
 # Tipo de usuário
@@ -20,3 +21,14 @@ class Usuario(models.Model):
 
     def __str__(self):
         return self.nome
+
+class UsuarioAlcada(models.Model):
+    class Meta:
+        db_table = 'usuario_alcada'
+        unique_together = ('usuario', 'ambiente')
+        
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='alcadas')
+    ambiente = models.ForeignKey(Ambiente, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return f"{self.usuario.nome} - {self.ambiente.nome}"

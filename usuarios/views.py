@@ -2,9 +2,9 @@ from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Usuario, TipoUsuario
+from .models import Usuario, TipoUsuario, UsuarioAlcada
 from django.contrib.auth.hashers import make_password
-from .forms import UsuarioForm
+from .forms import UsuarioForm, UsuarioAlcadaForm
 from django.shortcuts import render
 from core.decorators import master_required
 
@@ -48,11 +48,12 @@ def criar_usuario(request):
 
     return render(request, 'usuarios/criar_usuario.html', {'form': form})
 
-
 @master_required
 def editar_usuario(request, id):
     usuario = get_object_or_404(Usuario, id=id)
     user = User.objects.get(username=usuario.nome)
+    alcadas = UsuarioAlcada.objects.filter(usuario=usuario)
+    alcada_form = UsuarioAlcadaForm()
 
     if request.method == 'POST':
         form = UsuarioForm(request.POST, instance=usuario)
@@ -78,9 +79,10 @@ def editar_usuario(request, id):
 
     return render(request, 'usuarios/editar_usuario.html', {
         'form': form,
-        'usuario': usuario
+        'usuario': usuario,
+        'alcadas': alcadas,
+        'alcada_form': alcada_form
     })
-
 
 @master_required
 def excluir_usuario(request, id):
@@ -97,3 +99,39 @@ def excluir_usuario(request, id):
         messages.error(request, f'Erro ao excluir usuário: {str(e)}')
 
     return redirect('listar_usuarios')
+
+@master_required
+def gerenciar_alcada(request, id):
+    usuario = get_object_or_404(Usuario, id=id)
+    alcadas = UsuarioAlcada.objects.filter(usuario=usuario)
+    
+    if request.method == 'POST':
+        form = UsuarioAlcadaForm(request.POST)
+        if form.is_valid():
+            try:
+                alcada = form.save(commit=False)
+                alcada.usuario = usuario
+                alcada.save()
+                messages.success(request, 'Alçada adicionada com sucesso!')
+                return redirect('editar_usuario', id=id)
+            except Exception as e:
+                messages.error(request, f'Erro ao adicionar alçada: {str(e)}')
+    else:
+        form = UsuarioAlcadaForm()
+    
+    return render(request, 'usuarios/gerenciar_alcada.html', {
+        'usuario': usuario,
+        'alcadas': alcadas,
+        'form': form
+    })
+
+@master_required
+def excluir_alcada(request, id, alcada_id):
+    alcada = get_object_or_404(UsuarioAlcada, id=alcada_id, usuario_id=id)
+    try:
+        alcada.delete()
+        messages.success(request, 'Alçada removida com sucesso!')
+    except Exception as e:
+        messages.error(request, f'Erro ao remover alçada: {str(e)}')
+    
+    return redirect('editar_usuario', id=id)

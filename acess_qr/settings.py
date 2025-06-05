@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'ambiente',
     'login',
     'home',
+    'relatorios',
 ]
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
@@ -163,7 +164,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React default port
 ]
 ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['https://8036-177-87-32-112.ngrok-free.app']
+CSRF_TRUSTED_ORIGINS = ['https://9d22-177-39-66-189.ngrok-free.app']
 
 # Configurações do REST Framework
 REST_FRAMEWORK = {

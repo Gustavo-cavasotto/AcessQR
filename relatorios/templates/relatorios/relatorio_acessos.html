@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex align-items-center mb-4">
+        <i class="bi bi-file-earmark-text fs-2 me-3 text-primary"></i>
+        <div>
+            <h2 class="mb-0 fw-bold">Relatório de Acessos</h2>
+            <p class="text-muted mb-0">Filtre e visualize os registros de acesso</p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Usuário</label>
+                    <select name="usuario" class="form-select">
+                        <option value="">Todos</option>
+                        {% for usuario in usuarios %}
+                        <option value="{{ usuario.id }}" {% if request.GET.usuario == usuario.id|stringformat:"i" %}selected{% endif %}>
+                            {{ usuario }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Ambiente</label>
+                    <select name="ambiente" class="form-select">
+                        <option value="">Todos</option>
+                        {% for ambiente in ambientes %}
+                        <option value="{{ ambiente.id }}" {% if request.GET.ambiente == ambiente.id|stringformat:"i" %}selected{% endif %}>
+                            {{ ambiente }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Data Início</label>
+                    <input type="date" name="data_inicio" class="form-control" value="{{ request.GET.data_inicio }}">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Data Fim</label>
+                    <input type="date" name="data_fim" class="form-control" value="{{ request.GET.data_fim }}">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">Todos</option>
+                        {% for status_value, status_label in status_choices %}
+                        <option value="{{ status_value }}" {% if request.GET.status == status_value %}selected{% endif %}>
+                            {{ status_label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-12 mt-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Filtrar
+                    </button>
+                    <a href="{% url 'relatorio_acessos' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Limpar Filtros
+                    </a>
+                    <a href="{% url 'relatorio_acessos_pdf' %}?{{ request.GET.urlencode }}" class="btn btn-success">
+                        <i class="bi bi-file-pdf"></i> Imprimir PDF
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Usuário</th>
+                            <th>Ambiente</th>
+                            <th>Data/Hora</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for acesso in acessos %}
+                        <tr>
+                            <td>{{ acesso.usuario }}</td>
+                            <td>{{ acesso.ambiente }}</td>
+                            <td>{{ acesso.data_hora|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <span
+                                    class="badge {% if acesso.status == 'A' %}bg-success{% else %}bg-danger{% endif %}">
+                                    {% if acesso.status == 'A' %}
+                                    Autorizado
+                                    {% elif acesso.status == 'N' %}
+                                    Negado
+                                    {% else %}
+                                    {{ acesso.status }}
+                                    {% endif %}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center">Nenhum registro encontrado</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
