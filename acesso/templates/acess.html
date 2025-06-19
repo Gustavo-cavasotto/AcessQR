@@ -36,6 +36,9 @@
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-check-lg"></i> Verificar Acesso
                     </button>
+                    <a href="{% url 'ler_qrcode' %}" class="btn btn-primary">
+                        <i class="bi bi-qr-code-scan"></i> Ler QR Code
+                    </a>
                 </div>
             </form>
 
@@ -56,9 +59,6 @@
             </div>
             {% endif %}
 
-            <a href="{% url 'ler_qrcode' %}" class="btn btn-primary">
-                <i class="bi bi-qr-code-scan"></i> Ler QR Code
-            </a>
         </div>
     </div>
 </div>
