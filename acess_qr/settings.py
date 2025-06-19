@@ -164,8 +164,8 @@ CORS_ALLOW_ALL_ORIGINS = True  # Apenas para desenvolvimento
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React default port
 ]
-ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['https://9d22-177-39-66-189.ngrok-free.app']
+ALLOWED_HOSTS = ['*', 'acessqr.onrender.com']
+CSRF_TRUSTED_ORIGINS = ['https://9d22-177-39-66-189.ngrok-free.app', 'https://acessqr.onrender.com']
 
 # Configurações do REST Framework
 REST_FRAMEWORK = {
