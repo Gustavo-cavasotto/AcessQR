@@ -56,7 +56,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="mb-0">Últimos Acessos</h5>
                     {% if usuario.tipo == 'A' %}
-                    <a href="#" class="btn btn-sm btn-primary">Ver Todos</a>
+                    <a href="{% url 'relatorio_acessos' %}" class="btn btn-sm btn-primary">Ver Todos</a>
                     {% endif %}
                 </div>
                 <div class="table-responsive">
@@ -103,21 +103,21 @@
                 {% if usuario.tipo == 'A' %}
                 <!-- Ações do Administrador -->
                 <div class="d-grid gap-2">
-                    <a href="#" class="btn btn-primary d-flex align-items-center gap-2">
+                    <a href="{% url 'listar_usuarios' %}" class="btn btn-primary d-flex align-items-center gap-2">
                         <i class="fas fa-user-plus"></i>
                         Gerenciar Usuários
                     </a>
-                    <a href="#" class="btn btn-info d-flex align-items-center gap-2 text-white">
+                    <a href="{% url 'listar_qrcodes' %}" class="btn btn-info d-flex align-items-center gap-2 text-white">
                         <i class="fas fa-qrcode"></i>
                         Gerenciar QR Codes
                     </a>
-                    <a href="#" class="btn btn-success d-flex align-items-center gap-2">
+                    <a href="{% url 'relatorio_acessos' %}" class="btn btn-success d-flex align-items-center gap-2">
                         <i class="fas fa-file-alt"></i>
                         Gerar Relatórios
                     </a>
-                    <a href="#" class="btn btn-warning d-flex align-items-center gap-2">
-                        <i class="fas fa-cog"></i>
-                        Configurações
+                    <a href="{% url 'listar_ambientes' %}" class="btn btn-warning d-flex align-items-center gap-2">
+                        <i class="fas fa-warehouse"></i>
+                        Gerenciar Ambientes
                     </a>
                 </div>
                 {% else %}
@@ -147,7 +147,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <p class="mb-0 small">{{ qr.codigo }}</p>
-                            <small class="text-muted">Válido até: {{ qr.validade|date:"d/m/Y H:i" }}</small>
+                            <small class="text-muted">Válido até: {{ qr.validade_fim|date:"d/m/Y H:i" }}</small>
                         </div>
                         <div class="ms-2">
                             <span
