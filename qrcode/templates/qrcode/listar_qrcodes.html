@@ -29,10 +29,9 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th scope="col">Código</th>
+                            <th scope="col">Ambiente</th>
                             <th scope="col">Validade</th>
                             <th scope="col">Status</th>
-                            <th scope="col">Ambiente</th>
                             <th scope="col">Usuários Permitidos</th>
                             <th scope="col" class="text-end">Ações</th>
                         </tr>
@@ -42,8 +41,8 @@
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <i class="bi bi-qr-code fs-4 me-2 text-secondary"></i>
-                                    {{ qrcode.codigo }}
+                                    <i class="bi bi-building fs-4 me-2 text-secondary"></i>
+                                    {{ qrcode.ambiente.nome }}
                                 </div>
                             </td>
                             <td>{{ qrcode.validade_inicio|date:"d/m/Y H:i" }} - {{ qrcode.validade_fim|date:"d/m/Y H:i" }}</td>
@@ -56,18 +55,17 @@
                                 <span class="badge bg-danger">Revogado</span>
                                 {% endif %}
                             </td>
-                            <td>{{ qrcode.ambiente.nome }}</td>
                             <td>
                                 {% for usuario in qrcode.usuarios_permitidos.all %}
                                 <span class="badge bg-info me-1">{{ usuario.usuario.nome }}</span>
                                 {% endfor %}
                             </td>
                             <td class="text-end">
-                                <a href="{% url 'editar_qrcode' qrcode.id %}" class="btn btn-sm btn-warning me-1">
+                                <a href="{% url 'editar_qrcode' qrcode.codigo %}" class="btn btn-sm btn-warning me-1">
                                     <i class="bi bi-pencil-square"></i> Editar
                                 </a>
                                 <button
-                                    onclick="confirmarExclusao('{{ qrcode.codigo }}', '{% url 'excluir_qrcode' qrcode.id %}')"
+                                    onclick="confirmarExclusao('{{ qrcode.codigo }}', '{% url 'excluir_qrcode' qrcode.codigo %}')"
                                     class="btn btn-sm btn-danger">
                                     <i class="bi bi-trash-fill"></i> Excluir
                                 </button>
@@ -75,7 +73,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="6" class="text-center">Nenhum QR Code encontrado</td>
+                            <td colspan="5" class="text-center">Nenhum QR Code encontrado</td>
                         </tr>
                         {% endfor %}
                     </tbody>

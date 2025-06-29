@@ -180,6 +180,7 @@
 
             if (code) {
                 console.log('QR Code detectado:', code.data);
+                console.log('code', code);
                 await enviarCodigo(code.data);
             } else {
                 throw new Error('QR Code não encontrado na imagem');

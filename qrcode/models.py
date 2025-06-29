@@ -9,7 +9,7 @@ class QrCode(models.Model):
     class Meta:
         db_table = 'qrcode'
 
-    codigo = models.CharField(max_length=255, unique=True)
+    codigo = models.AutoField(primary_key=True)
     validade_inicio = models.DateTimeField()
     validade_fim = models.DateTimeField()
     STATUS_CHOICES = [
@@ -25,7 +25,7 @@ class QrCode(models.Model):
         Usuario, on_delete=models.CASCADE, related_name='qrcodes_criados')
 
     def __str__(self):
-        return self.codigo
+        return str(self.codigo)
 
 
 class QrCodeUsuario(models.Model):

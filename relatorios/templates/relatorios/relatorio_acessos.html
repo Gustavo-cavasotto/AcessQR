@@ -14,6 +14,10 @@
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form method="get" class="row g-3">
+                <!-- Campos hidden para manter ordenação -->
+                <input type="hidden" name="ordenar_por" value="{{ ordenar_por }}">
+                <input type="hidden" name="direcao" value="{{ direcao }}">
+                
                 <div class="col-md-3">
                     <label class="form-label">Usuário</label>
                     <select name="usuario" class="form-select">
@@ -67,6 +71,9 @@
                     <a href="{% url 'relatorio_acessos' %}" class="btn btn-secondary">
                         <i class="bi bi-x-circle"></i> Limpar Filtros
                     </a>
+                    <a href="{% url 'relatorio_acessos_nova_guia' %}?{{ request.GET.urlencode }}" class="btn btn-info" target="_blank">
+                        <i class="bi bi-box-arrow-up-right"></i> Nova Guia
+                    </a>
                     <a href="{% url 'relatorio_acessos_pdf' %}?{{ request.GET.urlencode }}" class="btn btn-success">
                         <i class="bi bi-file-pdf"></i> Imprimir PDF
                     </a>
@@ -81,10 +88,22 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th>Usuário</th>
-                            <th>Ambiente</th>
-                            <th>Data/Hora</th>
-                            <th>Status</th>
+                            <th class="sortable" data-field="usuario__nome" style="cursor: pointer;">
+                                Usuário
+                                <i class="bi bi-arrow-down-up text-muted ms-1"></i>
+                            </th>
+                            <th class="sortable" data-field="ambiente__nome" style="cursor: pointer;">
+                                Ambiente
+                                <i class="bi bi-arrow-down-up text-muted ms-1"></i>
+                            </th>
+                            <th class="sortable" data-field="data_hora" style="cursor: pointer;">
+                                Data/Hora
+                                <i class="bi bi-arrow-down-up text-muted ms-1"></i>
+                            </th>
+                            <th class="sortable" data-field="status" style="cursor: pointer;">
+                                Status
+                                <i class="bi bi-arrow-down-up text-muted ms-1"></i>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -116,5 +135,118 @@
             </div>
         </div>
     </div>
+
+    <!-- Paginação -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="row mt-3">
+        <div class="col-12">
+            {% include 'paginator.html' %}
+        </div>
+    </div>
+    {% endif %}
 </div>
+
+<script>
+// Função para ordenar ao clicar nos cabeçalhos
+function ordenarPorCampo(campo) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const ordenarPorAtual = urlParams.get('ordenar_por') || 'data_hora';
+    const direcaoAtual = urlParams.get('direcao') || 'desc';
+    
+    let novaDirecao = 'asc';
+    
+    // Se clicar no mesmo campo, alterna a direção
+    if (ordenarPorAtual === campo) {
+        novaDirecao = direcaoAtual === 'asc' ? 'desc' : 'asc';
+    }
+    
+    // Atualiza os parâmetros
+    urlParams.set('ordenar_por', campo);
+    urlParams.set('direcao', novaDirecao);
+    
+    // Mantém a página atual ao ordenar
+    // Não remove mais o parâmetro 'page'
+    
+    // Redireciona com os novos parâmetros
+    window.location.search = urlParams.toString();
+}
+
+// Função para preservar parâmetros ao navegar na paginação
+function preservarParametros() {
+    const form = document.querySelector('form');
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Preserva todos os parâmetros exceto 'page' ao submeter o formulário
+    form.addEventListener('submit', function(e) {
+        const formData = new FormData(form);
+        
+        // Remove a página atual ao aplicar filtros
+        urlParams.delete('page');
+        
+        // Adiciona os parâmetros do formulário
+        for (let [key, value] of formData.entries()) {
+            if (value) {
+                urlParams.set(key, value);
+            }
+        }
+        
+        // Atualiza a URL sem recarregar a página
+        window.location.search = urlParams.toString();
+        e.preventDefault();
+    });
+}
+
+// Adiciona eventos de clique nos cabeçalhos
+document.addEventListener('DOMContentLoaded', function() {
+    const headers = document.querySelectorAll('th.sortable');
+    
+    headers.forEach(header => {
+        header.addEventListener('click', function() {
+            const campo = this.getAttribute('data-field');
+            ordenarPorCampo(campo);
+        });
+        
+        // Adiciona efeito hover
+        header.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
+        
+        header.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+    
+    // Atualiza ícones baseado na ordenação atual
+    const ordenarPor = '{{ ordenar_por }}';
+    const direcao = '{{ direcao }}';
+    
+    headers.forEach(header => {
+        const campo = header.getAttribute('data-field');
+        const icon = header.querySelector('i');
+        
+        if (campo === ordenarPor) {
+            // Remove ícone genérico
+            icon.className = '';
+            
+            // Adiciona ícone específico baseado na direção
+            if (direcao === 'desc') {
+                icon.className = 'bi bi-sort-down text-primary ms-1';
+            } else {
+                icon.className = 'bi bi-sort-up text-primary ms-1';
+            }
+        }
+    });
+    
+    // Inicializa preservação de parâmetros
+    preservarParametros();
+});
+
+// Adiciona tooltip informativo
+document.addEventListener('DOMContentLoaded', function() {
+    const headers = document.querySelectorAll('th.sortable');
+    headers.forEach(header => {
+        header.title = 'Clique para ordenar';
+    });
+});
+</script>
 {% endblock %}

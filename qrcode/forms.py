@@ -22,8 +22,7 @@ class QrCodeForm(forms.ModelForm):
 
     class Meta:
         model = QrCode
-        fields = ['codigo', 'validade_inicio',
-                  'validade_fim', 'status', 'ambiente']
+        fields = ['validade_inicio', 'validade_fim', 'status', 'ambiente']
         widgets = {
             'validade_inicio': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             'validade_fim': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),

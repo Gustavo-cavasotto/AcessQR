@@ -23,8 +23,8 @@ def criar_qrcode(request):
                 # Converte o User do Django para nosso modelo Usuario
                 usuario = Usuario.objects.get(id=request.session['usuario_id'])
                 qrcode.criado_por = usuario
-                qrcode.save()
-                form.save()  # Salva os usuários permitidos
+                # Salva o QR Code e os usuários permitidos
+                form.save()
                 messages.success(request, 'QR Code criado com sucesso!')
                 return redirect('listar_qrcodes')
             except Exception as e:
@@ -37,7 +37,7 @@ def criar_qrcode(request):
 
 @login_required
 def editar_qrcode(request, id):
-    qrcode = get_object_or_404(QrCode, id=id)
+    qrcode = get_object_or_404(QrCode, codigo=id)
 
     if request.method == 'POST':
         form = QrCodeForm(request.POST, instance=qrcode)
@@ -59,7 +59,7 @@ def editar_qrcode(request, id):
 
 @login_required
 def excluir_qrcode(request, id):
-    qrcode = get_object_or_404(QrCode, id=id)
+    qrcode = get_object_or_404(QrCode, codigo=id)
 
     try:
         qrcode.delete()

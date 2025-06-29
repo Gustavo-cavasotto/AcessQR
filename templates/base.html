@@ -22,6 +22,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -55,12 +56,20 @@
 
 <body>
     <div id="wrapper">
+        <!-- Overlay para mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Botão hambúrguer para mobile -->
+        <button class="btn btn-light position-fixed hamburger-btn" id="hamburgerBtn" 
+                style="top: 1rem; left: 1rem; z-index: 1060; display: none;">
+            <i class="fa-solid fa-bars"></i>
+        </button>
 
         <!-- Content Wrapper -->
         <div class="d-flex">
             {% include 'menu.html' %}
             <!-- Begin Page Content -->
-            <div class="container-fluid p-4 flex-grow-1">
+            <div class="container-fluid p-4 flex-grow-1 main-content">
                 <div class="bg-white shadow-sm rounded-3 p-4">
                     {% block app_title %}
                     <h1 class="h3 mb-4 text-gray-800 d-flex align-items-center">
@@ -126,6 +135,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.all.min.js"></script>
     <script src="{% static 'js/htmx.min.js' %}"></script>
     <script src="{% static 'js/jquery.mask.min.js' %}"></script>
+    <script src="{% static 'js/responsive-menu.js' %}"></script>
 
     <!-- Custom Scripts -->
     <script>

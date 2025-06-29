@@ -1,38 +1,205 @@
-<ul class="pagination justify-content-center">
-    
-    <li class="page-item">
-        {% if page_obj.has_previous %}
-        <a class="page-link fa fa-backward-step" href="?page=1"></a>
-        {% else %}
-        <span class="page-link-disabled fa fa-backward-step" href="#" disabled></span>
+{% if page_obj.paginator.num_pages > 1 %}
+<div class="d-flex justify-content-between align-items-center mt-4">
+    <!-- Informações da página -->
+    <div class="text-muted small">
+        <i class="bi bi-collection me-1"></i>
+        Página <strong>{{ page_obj.number }}</strong> de <strong>{{ page_obj.paginator.num_pages }}</strong>
+        {% if page_obj.paginator.count > 0 %}
+        <span class="ms-2">• {{ page_obj.paginator.count }} registro{{ page_obj.paginator.count|pluralize:"s" }}</span>
         {% endif %}
-    </li>
-    <li class="page-item">
-        {% if page_obj.has_previous %}
-        <a class="page-link fa fa-caret-left" href="?page={{ page_obj.previous_page_number }}"></a>
-        {% else %}
-        <span class="page-link-disabled fa fa-caret-left"></span>
-        {% endif %}
-    </li>
+    </div>
 
-    <li class="page-item">
-        <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-    </li>
+    <!-- Navegação -->
+    <nav aria-label="Navegação de páginas">
+        <ul class="pagination pagination-sm mb-0">
+            <!-- Primeira página -->
+            <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+                {% if page_obj.has_previous %}
+                <a class="page-link border-0 rounded-start" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1" 
+                   title="Primeira página">
+                    <i class="bi bi-chevron-double-left"></i>
+                </a>
+                {% else %}
+                <span class="page-link border-0 rounded-start disabled">
+                    <i class="bi bi-chevron-double-left text-muted"></i>
+                </span>
+                {% endif %}
+            </li>
 
+            <!-- Página anterior -->
+            <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+                {% if page_obj.has_previous %}
+                <a class="page-link border-0" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" 
+                   title="Página anterior">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+                {% else %}
+                <span class="page-link border-0 disabled">
+                    <i class="bi bi-chevron-left text-muted"></i>
+                </span>
+                {% endif %}
+            </li>
+
+            <!-- Números das páginas -->
+            {% if page_obj.paginator.num_pages <= 7 %}
+                <!-- Mostra todas as páginas se forem 7 ou menos -->
+                {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+                    {% if num == page_obj.number %}
+                    <span class="page-link border-0 bg-primary text-white">{{ num }}</span>
+                    {% else %}
+                    <a class="page-link border-0" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            {% else %}
+                <!-- Lógica para muitas páginas -->
+                {% if page_obj.number <= 4 %}
+                    <!-- Páginas iniciais -->
+                    {% for num in "12345"|make_list %}
+                    <li class="page-item {% if forloop.counter == page_obj.number %}active{% endif %}">
+                        {% if forloop.counter == page_obj.number %}
+                        <span class="page-link border-0 bg-primary text-white">{{ forloop.counter }}</span>
+                        {% else %}
+                        <a class="page-link border-0" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ forloop.counter }}">{{ forloop.counter }}</a>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                    <li class="page-item disabled">
+                        <span class="page-link border-0 text-muted">...</span>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link border-0" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
+                    </li>
+                {% elif page_obj.number >= page_obj.paginator.num_pages|add:"-3" %}
+                    <!-- Páginas finais -->
+                    <li class="page-item">
+                        <a class="page-link border-0" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1">1</a>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link border-0 text-muted">...</span>
+                    </li>
+                    {% for num in page_obj.paginator.num_pages|add:"-4"|add:"1"|make_list %}
+                    <li class="page-item {% if page_obj.number == page_obj.paginator.num_pages|add:"-4"|add:forloop.counter0 %}active{% endif %}">
+                        {% if page_obj.number == page_obj.paginator.num_pages|add:"-4"|add:forloop.counter0 %}
+                        <span class="page-link border-0 bg-primary text-white">{{ page_obj.paginator.num_pages|add:"-4"|add:forloop.counter0 }}</span>
+                        {% else %}
+                        <a class="page-link border-0" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.paginator.num_pages|add:"-4"|add:forloop.counter0 }}">{{ page_obj.paginator.num_pages|add:"-4"|add:forloop.counter0 }}</a>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <!-- Páginas do meio -->
+                    <li class="page-item">
+                        <a class="page-link border-0" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1">1</a>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link border-0 text-muted">...</span>
+                    </li>
+                    {% for num in "123"|make_list %}
+                    <li class="page-item {% if page_obj.number == page_obj.number|add:"-1"|add:forloop.counter0 %}active{% endif %}">
+                        {% if page_obj.number == page_obj.number|add:"-1"|add:forloop.counter0 %}
+                        <span class="page-link border-0 bg-primary text-white">{{ page_obj.number|add:"-1"|add:forloop.counter0 }}</span>
+                        {% else %}
+                        <a class="page-link border-0" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.number|add:"-1"|add:forloop.counter0 }}">{{ page_obj.number|add:"-1"|add:forloop.counter0 }}</a>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                    <li class="page-item disabled">
+                        <span class="page-link border-0 text-muted">...</span>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link border-0" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
+                    </li>
+                {% endif %}
+            {% endif %}
+
+            <!-- Próxima página -->
+            <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+                {% if page_obj.has_next %}
+                <a class="page-link border-0" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" 
+                   title="Próxima página">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+                {% else %}
+                <span class="page-link border-0 disabled">
+                    <i class="bi bi-chevron-right text-muted"></i>
+                </span>
+                {% endif %}
+            </li>
+
+            <!-- Última página -->
+            <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+                {% if page_obj.has_next %}
+                <a class="page-link border-0 rounded-end" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.paginator.num_pages }}" 
+                   title="Última página">
+                    <i class="bi bi-chevron-double-right"></i>
+                </a>
+                {% else %}
+                <span class="page-link border-0 rounded-end disabled">
+                    <i class="bi bi-chevron-double-right text-muted"></i>
+                </span>
+                {% endif %}
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<style>
+.pagination .page-link {
+    color: #6c757d;
+    background-color: transparent;
+    border: 1px solid #dee2e6;
+    margin: 0 2px;
+    min-width: 36px;
+    text-align: center;
+    transition: all 0.2s ease-in-out;
+}
+
+.pagination .page-link:hover {
+    color: #495057;
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+    font-weight: 600;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #adb5bd;
+    background-color: transparent;
+    border-color: #dee2e6;
+}
+
+.pagination .page-link:focus {
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    z-index: 3;
+}
+
+.pagination-sm .page-link {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 0.25rem;
+}
+
+@media (max-width: 576px) {
+    .pagination {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
     
-    <li class="page-item">
-        {% if page_obj.has_next %}
-        <a class="page-link fa fa-caret-right" href="?page={{ page_obj.next_page_number }}"></a>
-        {% else %}
-        <span class="page-link-disabled fa fa-caret-right" "></span>
-        {% endif %}
-    </li>
-    <li class="page-item">
-        {% if page_obj.has_next %}
-        <a class="page-link fa fa-forward-step" href="?page={{ page_obj.paginator.num_pages }}"></a>
-        {% else %}
-        <span class="page-link-disabled fa fa-forward-step"></span>
-        {% endif %}
-    </li>
-    
-</ul>
+    .pagination .page-link {
+        margin: 1px;
+        min-width: 32px;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+    }
+}
+</style>
+{% endif %}

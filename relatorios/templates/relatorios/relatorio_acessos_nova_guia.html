@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Acessos - Nova Guia</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    {% load static %}
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #177aca 0%, #65aabb 100%);
+            color: white;
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .table thead th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+            color: #495057;
+        }
+        .badge {
+            font-size: 0.8em;
+            padding: 0.5em 0.8em;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 1rem 0;
+            margin-top: 2rem;
+            border-top: 1px solid #dee2e6;
+        }
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .logo {
+            max-height: 110px;
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="print-button d-print-none">
+        <button onclick="window.print()" class="btn btn-primary">
+            <i class="bi bi-printer"></i> Imprimir
+        </button>
+    </div>
+
+    <div class="header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="d-flex align-items-center">
+                        <img src="{% static 'img/acessqr_logo.png' %}" alt="AcessQR Logo" class="logo me-3">
+                        <div>
+                            <h1 class="mb-0">
+                                <i class="bi bi-file-earmark-text me-3"></i>
+                                Relatório de Acessos
+                            </h1>
+                            <p class="mb-0 mt-2 opacity-75">Visualização em nova guia</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <p class="mb-0">
+                        <i class="bi bi-calendar3 me-2"></i>
+                        Gerado em: {{ data_geracao }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th><i class="bi bi-person me-2"></i>Usuário</th>
+                            <th><i class="bi bi-building"></i>Ambiente</th>
+                            <th><i class="bi bi-calendar-event me-2"></i>Data/Hora</th>
+                            <th><i class="bi bi-check-circle me-2"></i>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for acesso in acessos %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center me-2">
+                                        <i class="bi bi-person text-white"></i>
+                                    </div>
+                                    <span class="fw-medium">{{ acesso.usuario }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="text-muted">
+                                    <i class="bi bi-building"></i>
+                                    {{ acesso.ambiente }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="text-muted">
+                                    <i class="bi bi-clock me-1"></i>
+                                    {{ acesso.data_hora|date:"d/m/Y H:i" }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {% if acesso.status == 'A' %}bg-success{% else %}bg-danger{% endif %}">
+                                    <i class="bi {% if acesso.status == 'A' %}bi-check-circle{% else %}bi-x-circle{% endif %} me-1"></i>
+                                    {% if acesso.status == 'A' %}
+                                        Autorizado
+                                    {% elif acesso.status == 'N' %}
+                                        Negado
+                                    {% else %}
+                                        {{ acesso.status }}
+                                    {% endif %}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                                    <h5>Nenhum registro encontrado</h5>
+                                    <p class="mb-0">Não há dados de acesso para exibir.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if acessos %}
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card border-0 bg-light">
+                    <div class="card-body">
+                        <h6 class="card-title text-muted">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Resumo
+                        </h6>
+                        <p class="card-text mb-0">
+                            Total de registros: <strong>{{ acessos.count }}</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0 text-muted">
+                        <i class="bi bi-shield-check me-2"></i>
+                        AcessQR
+                    </p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p class="mb-0 text-muted">
+                        Página gerada em {{ data_geracao }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

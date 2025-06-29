@@ -38,8 +38,8 @@ def acesso(request):
                     return JsonResponse({
                         'status': 'autorizado',
                         'mensagem': f'Acesso autorizado ao ambiente {ambiente.nome}',
-                        'qrcode_id': qrcode.id,
-                        'codigo': qrcode.codigo
+                        'qrcode_id': str(qrcode.codigo),
+                        'codigo': str(qrcode.codigo)
                     })
                 else:
                     inserir_acesso(data_atual, 'N', ambiente.id, usuario.id)
@@ -79,6 +79,7 @@ def validar_qrcode(request):
         try:
             data = json.loads(request.body)
             codigo = data.get('codigo')
+            print('codigo', codigo)
             
             if not codigo:
                 return JsonResponse({
@@ -86,12 +87,21 @@ def validar_qrcode(request):
                     'mensagem': 'Código do QR Code não fornecido'
                 }, status=400)
 
+            # Converte o código para inteiro se for string
+            try:
+                codigo_int = int(codigo)
+            except (ValueError, TypeError):
+                return JsonResponse({
+                    'status': 'negado',
+                    'mensagem': 'Código do QR Code inválido'
+                })
+
             usuario = Usuario.objects.get(id=request.session['usuario_id'])
             data_atual = datetime.now()
 
             # Busca o QR Code pelo código
             qrcode = QrCode.objects.filter(
-                codigo=codigo,
+                codigo=codigo_int,
                 status='A',
                 validade_inicio__lte=data_atual,
                 validade_fim__gte=data_atual

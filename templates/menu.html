@@ -1,10 +1,18 @@
 {% load static %}
 <nav class="sidebar bg-white shadow-sm border-end" style="width: 280px; min-height: 100vh;">
     <div class="d-flex flex-column h-100">
-        <!-- Logo -->
-        <div class="p-3 text-center">
-            <img src="{% static 'img/acessqr_logo.png' %}" alt="AcessQR Logo" class="img-fluid"
-                style="max-width: 180px;">
+        <!-- Header do menu com botão de fechar para mobile -->
+        <div class="d-flex justify-content-between align-items-center p-3">
+            <!-- Logo -->
+            <div class="text-center flex-grow-1">
+                <img src="{% static 'img/acessqr_logo.png' %}" alt="AcessQR Logo" class="img-fluid"
+                    style="max-width: 180px;">
+            </div>
+            <!-- Botão de fechar para mobile -->
+            <button class="btn btn-link text-dark d-md-none close-sidebar-btn" id="closeSidebarBtn" 
+                    style="position: absolute; right: 1rem; top: 1rem;">
+                <i class="fa-solid fa-times fs-4"></i>
+            </button>
         </div>
 
         <hr class="mx-3 my-2">

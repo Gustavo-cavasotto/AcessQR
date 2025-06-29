@@ -1,0 +1,131 @@
+/* Estilos responsivos para o menu mobile */
+
+/* Sidebar responsivo */
+.sidebar {
+    transition: transform 0.3s ease-in-out;
+    z-index: 1050;
+}
+
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1040;
+    display: none;
+}
+
+.hamburger-btn {
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.hamburger-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.close-sidebar-btn {
+    border: none;
+    background: transparent;
+    padding: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.close-sidebar-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    transform: scale(1.1);
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        transform: translateX(-100%);
+        height: 100vh;
+        overflow-y: auto;
+        width: 280px;
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    .sidebar-overlay.show {
+        display: block;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+        padding-top: 4rem !important;
+    }
+
+    .hamburger-btn {
+        display: block !important;
+    }
+
+    /* Melhorar a experiência de scroll no mobile */
+    .sidebar::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 2px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.3);
+    }
+
+    body.no-scroll {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+    }
+}
+
+/* Desktop styles */
+@media (min-width: 769px) {
+    .sidebar {
+        position: relative;
+        transform: translateX(0) !important;
+    }
+
+
+    .hamburger-btn {
+        display: none !important;
+    }
+
+    .close-sidebar-btn {
+        display: none !important;
+    }
+}
+
+/* Animações suaves */
+.sidebar,
+.sidebar-overlay {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Melhorar acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+    .sidebar,
+    .sidebar-overlay,
+    .hamburger-btn,
+    .close-sidebar-btn {
+        transition: none;
+    }
+} 
