@@ -18,7 +18,6 @@ def acesso(request):
             usuario = Usuario.objects.get(id=request.session['usuario_id'])
             data_atual = datetime.now()
 
-            # Verifica se existe um QR Code válido para o ambiente
             qrcode = QrCode.objects.filter(
                 ambiente=ambiente,
                 status='A',
