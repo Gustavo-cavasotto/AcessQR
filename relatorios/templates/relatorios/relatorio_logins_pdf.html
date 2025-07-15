@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Relatório de Logins</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            margin: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 15px;
+        }
+        
+        .header h1 {
+            color: #007bff;
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .header p {
+            margin: 5px 0 0 0;
+            color: #666;
+        }
+        
+        .info {
+            margin-bottom: 20px;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .badge {
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: white;
+            font-size: 10px;
+        }
+        
+        .badge-success {
+            background-color: #28a745;
+        }
+        
+        .badge-warning {
+            background-color: #ffc107;
+            color: black;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 10px;
+        }
+        
+        .total {
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Relatório de Logins do Sistema</h1>
+        <p>Data de geração: {{ data_geracao }}</p>
+    </div>
+    
+    <div class="info">
+        <p><strong>Total de registros:</strong> <span class="total">{{ logins|length }}</span></p>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Data/Hora</th>
+                <th>Usuário</th>
+                <th>Tipo</th>
+                <th>Endereço IP</th>
+                <th>Dispositivo</th>
+                <th>Navegador</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for login in logins %}
+            <tr>
+                <td>{{ login.data_hora|date:"d/m/Y H:i:s" }}</td>
+                <td>{{ login.usuario.nome }}</td>
+                <td>
+                    {% if login.tipo == 'login' %}
+                        <span class="badge badge-success">Login</span>
+                    {% else %}
+                        <span class="badge badge-warning">Logout</span>
+                    {% endif %}
+                </td>
+                <td>{{ login.ip_address }}</td>
+                <td>{{ login.dispositivo }}</td>
+                <td>{{ login.navegador }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center; color: #666;">
+                    Nenhum registro encontrado
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div class="footer">
+        <p>Relatório gerado pelo sistema AcessQR em {{ data_geracao }}</p>
+    </div>
+</body>
+</html> 

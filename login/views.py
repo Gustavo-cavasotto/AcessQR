@@ -6,9 +6,19 @@ from django.contrib.auth import login as auth_login, authenticate, logout as log
 from django.contrib.auth.forms import AuthenticationForm
 
 from usuarios.models import Usuario
+from .models import LoginLog
 
 from .forms import CadastroForm, LoginForm
 from django.contrib import messages
+
+def get_client_ip(request):
+    """Captura o IP do cliente"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 
 def cadastro(request):
     if request.method == 'POST':
@@ -34,6 +44,14 @@ def login(request):
             request.session['usuario_id'] = usuario_obj.id
             request.session['usuario_tipo'] = usuario_obj.tipo
             
+            # Registra o login
+            LoginLog.objects.create(
+                usuario=usuario_obj,
+                ip_address=get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                tipo='login'
+            )
+            
             auth_login(request, user)
             return redirect('home')
         else:
@@ -44,7 +62,19 @@ def login(request):
         form = LoginForm()
     return render(request, 'login/templates/login.html', {'form': form})
 
-
 def logout(request):
+    # Registra o logout antes de fazer logout
+    if request.user.is_authenticated:
+        try:
+            usuario_obj = Usuario.objects.get(nome=request.user.username)
+            LoginLog.objects.create(
+                usuario=usuario_obj,
+                ip_address=get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                tipo='logout'
+            )
+        except Usuario.DoesNotExist:
+            pass
+    
     logout_user(request)
     return redirect('login')

@@ -1,0 +1,195 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Logins - AcessQR</title>
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        @media print {
+            .print-button {
+                display: none;
+            }
+            
+            body {
+                background-color: white;
+            }
+        }
+        
+        .logo {
+            max-width: 200px;
+            height: auto;
+        }
+        
+        .report-header {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 30px 0;
+        }
+        
+        .badge-custom {
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <button class="btn btn-primary print-button" onclick="window.print()">
+        <i class="bi bi-printer"></i> Imprimir
+    </button>
+    
+    <div class="container-fluid">
+        <div class="report-header text-center mb-4">
+            <div class="container">
+                <img src="{% static 'img/acessqr_logo.png' %}" alt="AcessQR Logo" class="logo mb-3">
+                <h1 class="display-4 fw-bold">Relatório de Logins</h1>
+                <p class="lead mb-0">Registros de acesso ao sistema</p>
+                <small class="opacity-75">Gerado em: {{ data_geracao }}</small>
+            </div>
+        </div>
+        
+        <div class="container">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card border-primary">
+                        <div class="card-body text-center">
+                            <i class="bi bi-list-check text-primary" style="font-size: 2rem;"></i>
+                            <h5 class="card-title mt-2">Total de Registros</h5>
+                            <h3 class="text-primary">{{ logins|length }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border-info">
+                        <div class="card-body text-center">
+                            <i class="bi bi-calendar3 text-info" style="font-size: 2rem;"></i>
+                            <h5 class="card-title mt-2">Data de Geração</h5>
+                            <h6 class="text-info">{{ data_geracao }}</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-table"></i> Registros de Login
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Data/Hora</th>
+                                    <th>Usuário</th>
+                                    <th>Tipo</th>
+                                    <th>Endereço IP</th>
+                                    <th>Dispositivo</th>
+                                    <th>Navegador</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for login in logins %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ login.data_hora|date:"d/m/Y" }}</strong><br>
+                                        <small class="text-muted">{{ login.data_hora|time:"H:i:s" }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="{% static 'img/no-user.png' %}" 
+                                                 alt="Avatar" width="32" height="32" 
+                                                 class="rounded-circle me-2">
+                                            <div>
+                                                <strong>{{ login.usuario.nome }}</strong><br>
+                                                <small class="text-muted">{{ login.usuario.email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if login.tipo == 'login' %}
+                                            <span class="badge bg-success badge-custom">
+                                                <i class="bi bi-box-arrow-in-right"></i> Login
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-warning badge-custom">
+                                                <i class="bi bi-box-arrow-right"></i> Logout
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <code class="text-primary">{{ login.ip_address }}</code>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark badge-custom">
+                                            {% if login.dispositivo == 'Mobile' %}
+                                                <i class="bi bi-phone"></i>
+                                            {% elif login.dispositivo == 'Tablet' %}
+                                                <i class="bi bi-tablet"></i>
+                                            {% else %}
+                                                <i class="bi bi-display"></i>
+                                            {% endif %}
+                                            {{ login.dispositivo }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark badge-custom">
+                                            {% if login.navegador == 'Chrome' %}
+                                                <i class="bi bi-browser-chrome"></i>
+                                            {% elif login.navegador == 'Firefox' %}
+                                                <i class="bi bi-browser-firefox"></i>
+                                            {% elif login.navegador == 'Safari' %}
+                                                <i class="bi bi-browser-safari"></i>
+                                            {% elif login.navegador == 'Edge' %}
+                                                <i class="bi bi-browser-edge"></i>
+                                            {% else %}
+                                                <i class="bi bi-globe"></i>
+                                            {% endif %}
+                                            {{ login.navegador }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5">
+                                        <div class="text-muted">
+                                            <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                                            <div class="mt-3">
+                                                <h5>Nenhum registro encontrado</h5>
+                                                <p>Não há dados para os filtros aplicados.</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4 mb-4">
+                <small class="text-muted">
+                    <i class="bi bi-shield-check"></i>
+                    Relatório gerado pelo sistema AcessQR
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html> 

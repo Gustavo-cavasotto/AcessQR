@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from acesso.models import Acesso
 from usuarios.models import Usuario
 from ambiente.models import Ambiente
+from login.models import LoginLog
 from django.db.models import Q
 from datetime import datetime
 from django.template.loader import render_to_string
@@ -99,6 +100,64 @@ def relatorio_acessos(request):
     return render(request, 'relatorios/relatorio_acessos.html', context)
 
 @login_required
+def relatorio_logins(request):
+    logins = LoginLog.objects.all()
+    
+    # Filtros
+    usuario_id = request.GET.get('usuario')
+    data_inicio = request.GET.get('data_inicio')
+    data_fim = request.GET.get('data_fim')
+    tipo = request.GET.get('tipo')
+    
+    # Ordenação
+    ordenar_por = request.GET.get('ordenar_por', 'data_hora')
+    direcao = request.GET.get('direcao', 'desc')
+    
+    if usuario_id:
+        logins = logins.filter(usuario_id=usuario_id)
+    if data_inicio:
+        data_inicio = datetime.strptime(data_inicio, '%Y-%m-%d')
+        logins = logins.filter(data_hora__gte=data_inicio)
+    if data_fim:
+        data_fim = datetime.strptime(data_fim, '%Y-%m-%d')
+        logins = logins.filter(data_hora__lte=data_fim)
+    if tipo:
+        logins = logins.filter(tipo=tipo)
+    
+    # Aplicar ordenação
+    if direcao == 'desc':
+        logins = logins.order_by(f'-{ordenar_por}')
+    else:
+        logins = logins.order_by(ordenar_por)
+    
+    # Paginação
+    paginator = Paginator(logins, 30)  # 30 resultados por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    usuarios = Usuario.objects.all()
+    
+    # Opções de ordenação
+    opcoes_ordenacao = [
+        ('data_hora', 'Data/Hora'),
+        ('usuario__nome', 'Usuário'),
+        ('ip_address', 'IP'),
+        ('tipo', 'Tipo'),
+    ]
+    
+    context = {
+        'logins': page_obj,
+        'page_obj': page_obj,
+        'usuarios': usuarios,
+        'tipo_choices': LoginLog.TIPO_CHOICES,
+        'opcoes_ordenacao': opcoes_ordenacao,
+        'ordenar_por': ordenar_por,
+        'direcao': direcao,
+    }
+    
+    return render(request, 'relatorios/relatorio_logins.html', context)
+
+@login_required
 def relatorio_acessos_pdf(request):
     acessos = Acesso.objects.all()
     
@@ -182,3 +241,71 @@ def relatorio_acessos_nova_guia(request):
     }
     
     return render(request, 'relatorios/relatorio_acessos_nova_guia.html', context)
+
+@login_required
+def relatorio_logins_pdf(request):
+    logins = LoginLog.objects.all()
+    
+    # Filtros
+    usuario_id = request.GET.get('usuario')
+    data_inicio = request.GET.get('data_inicio')
+    data_fim = request.GET.get('data_fim')
+    tipo = request.GET.get('tipo')
+    
+    if usuario_id:
+        logins = logins.filter(usuario_id=usuario_id)
+    if data_inicio:
+        data_inicio = datetime.strptime(data_inicio, '%Y-%m-%d')
+        logins = logins.filter(data_hora__gte=data_inicio)
+    if data_fim:
+        data_fim = datetime.strptime(data_fim, '%Y-%m-%d')
+        logins = logins.filter(data_hora__lte=data_fim)
+    if tipo:
+        logins = logins.filter(tipo=tipo)
+    
+    context = {
+        'logins': logins,
+        'data_geracao': datetime.now().strftime('%d/%m/%Y %H:%M'),
+    }
+    
+    # Renderiza o template HTML
+    html_string = render_to_string('relatorios/relatorio_logins_pdf.html', context)
+    
+    # Cria o PDF
+    result = io.BytesIO()
+    pdf = pisa.pisaDocument(io.StringIO(html_string), result)
+    
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="relatorio_logins.pdf"'
+        return response
+    
+    return HttpResponse('Erro ao gerar PDF', status=500)
+
+@login_required
+def relatorio_logins_nova_guia(request):
+    logins = LoginLog.objects.all()
+    
+    # Filtros
+    usuario_id = request.GET.get('usuario')
+    data_inicio = request.GET.get('data_inicio')
+    data_fim = request.GET.get('data_fim')
+    tipo = request.GET.get('tipo')
+    
+    if usuario_id:
+        logins = logins.filter(usuario_id=usuario_id)
+    if data_inicio:
+        data_inicio = datetime.strptime(data_inicio, '%Y-%m-%d')
+        logins = logins.filter(data_hora__gte=data_inicio)
+    if data_fim:
+        data_fim = datetime.strptime(data_fim, '%Y-%m-%d')
+        logins = logins.filter(data_hora__lte=data_fim)
+    if tipo:
+        logins = logins.filter(tipo=tipo)
+    
+    context = {
+        'logins': logins,
+        'data_geracao': datetime.now().strftime('%d/%m/%Y %H:%M'),
+    }
+    
+    return render(request, 'relatorios/relatorio_logins_nova_guia.html', context)

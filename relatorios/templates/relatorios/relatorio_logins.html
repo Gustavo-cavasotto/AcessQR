@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex align-items-center mb-4">
+        <i class="bi bi-file-earmark-text fs-2 me-3 text-primary"></i>
+        <div>
+            <h2 class="mb-0 fw-bold">Relatório de Logins</h2>
+            <p class="text-muted mb-0">Filtre e visualize os registros de login do sistema</p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <!-- Campos hidden para manter ordenação -->
+                <input type="hidden" name="ordenar_por" value="{{ ordenar_por }}">
+                <input type="hidden" name="direcao" value="{{ direcao }}">
+                
+                <div class="col-md-3">
+                    <label class="form-label">Usuário</label>
+                    <select name="usuario" class="form-select">
+                        <option value="">Todos</option>
+                        {% for usuario in usuarios %}
+                        <option value="{{ usuario.id }}" {% if request.GET.usuario == usuario.id|stringformat:"i" %}selected{% endif %}>
+                            {{ usuario }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Tipo</label>
+                    <select name="tipo" class="form-select">
+                        <option value="">Todos</option>
+                        {% for tipo_value, tipo_label in tipo_choices %}
+                        <option value="{{ tipo_value }}" {% if request.GET.tipo == tipo_value %}selected{% endif %}>
+                            {{ tipo_label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Data Início</label>
+                    <input type="date" name="data_inicio" class="form-control" value="{{ request.GET.data_inicio }}">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Data Fim</label>
+                    <input type="date" name="data_fim" class="form-control" value="{{ request.GET.data_fim }}">
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bi bi-search"></i> Filtrar
+                    </button>
+                    <a href="{% url 'relatorio_logins' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Limpar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-0">Registros de Login</h5>
+                <small class="text-muted">Total: {{ page_obj.paginator.count }} registros</small>
+            </div>
+            <div class="btn-group">
+                <a href="{% url 'relatorio_logins_pdf' %}?{{ request.GET.urlencode }}" 
+                   class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-file-pdf"></i> PDF
+                </a>
+                <a href="{% url 'relatorio_logins_nova_guia' %}?{{ request.GET.urlencode }}" 
+                   target="_blank" class="btn btn-outline-info btn-sm">
+                    <i class="bi bi-window"></i> Nova Guia
+                </a>
+            </div>
+        </div>
+        
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <!-- Cabeçalhos com ordenação -->
+                            <th>
+                                <a href="?{{ request.GET.urlencode }}&ordenar_por=data_hora&direcao={% if ordenar_por == 'data_hora' and direcao == 'asc' %}desc{% else %}asc{% endif %}"
+                                   class="text-decoration-none text-dark">
+                                    Data/Hora
+                                    {% if ordenar_por == 'data_hora' %}
+                                        {% if direcao == 'asc' %}
+                                            <i class="bi bi-arrow-up"></i>
+                                        {% else %}
+                                            <i class="bi bi-arrow-down"></i>
+                                        {% endif %}
+                                    {% endif %}
+                                </a>
+                            </th>
+                            <th>
+                                <a href="?{{ request.GET.urlencode }}&ordenar_por=usuario__nome&direcao={% if ordenar_por == 'usuario__nome' and direcao == 'asc' %}desc{% else %}asc{% endif %}"
+                                   class="text-decoration-none text-dark">
+                                    Usuário
+                                    {% if ordenar_por == 'usuario__nome' %}
+                                        {% if direcao == 'asc' %}
+                                            <i class="bi bi-arrow-up"></i>
+                                        {% else %}
+                                            <i class="bi bi-arrow-down"></i>
+                                        {% endif %}
+                                    {% endif %}
+                                </a>
+                            </th>
+                            <th>
+                                <a href="?{{ request.GET.urlencode }}&ordenar_por=tipo&direcao={% if ordenar_por == 'tipo' and direcao == 'asc' %}desc{% else %}asc{% endif %}"
+                                   class="text-decoration-none text-dark">
+                                    Tipo
+                                    {% if ordenar_por == 'tipo' %}
+                                        {% if direcao == 'asc' %}
+                                            <i class="bi bi-arrow-up"></i>
+                                        {% else %}
+                                            <i class="bi bi-arrow-down"></i>
+                                        {% endif %}
+                                    {% endif %}
+                                </a>
+                            </th>
+                            <th>
+                                <a href="?{{ request.GET.urlencode }}&ordenar_por=ip_address&direcao={% if ordenar_por == 'ip_address' and direcao == 'asc' %}desc{% else %}asc{% endif %}"
+                                   class="text-decoration-none text-dark">
+                                    IP
+                                    {% if ordenar_por == 'ip_address' %}
+                                        {% if direcao == 'asc' %}
+                                            <i class="bi bi-arrow-up"></i>
+                                        {% else %}
+                                            <i class="bi bi-arrow-down"></i>
+                                        {% endif %}
+                                    {% endif %}
+                                </a>
+                            </th>
+                            <th>Dispositivo</th>
+                            <th>Navegador</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for login in logins %}
+                        <tr>
+                            <td>{{ login.data_hora|date:"d/m/Y H:i:s" }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img src="{% load static %}{% static 'img/no-user.png' %}" 
+                                         alt="Avatar" width="24" height="24" class="rounded-circle me-2">
+                                    {{ login.usuario.nome }}
+                                </div>
+                            </td>
+                            <td>
+                                {% if login.tipo == 'login' %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-box-arrow-in-right"></i> Login
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-warning">
+                                        <i class="bi bi-box-arrow-right"></i> Logout
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <code>{{ login.ip_address }}</code>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark">
+                                    {{ login.dispositivo }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark">
+                                    {{ login.navegador }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <div class="text-muted">
+                                    <i class="bi bi-inbox fs-1"></i>
+                                    <div class="mt-2">Nenhum registro encontrado</div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Paginação -->
+        {% if page_obj.has_other_pages %}
+        <div class="card-footer">
+            <nav aria-label="Paginação">
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" 
+                               href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" 
+                                   href="?{{ request.GET.urlencode }}&page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" 
+                               href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 
