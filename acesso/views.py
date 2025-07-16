@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from acesso.forms import AcessoForm
@@ -8,6 +8,7 @@ from datetime import datetime
 from usuarios.models import Usuario
 from tools.views import sql_executa
 import json
+from django.contrib import messages
 
 @login_required
 def acesso(request):
@@ -34,12 +35,31 @@ def acesso(request):
 
                 if usuario_permitido:
                     inserir_acesso(data_atual, 'A', ambiente.id, usuario.id)
-                    return JsonResponse({
+                    
+                    # Dados para retorno JSON
+                    response_data = {
                         'status': 'autorizado',
                         'mensagem': f'Acesso autorizado ao ambiente {ambiente.nome}',
                         'qrcode_id': str(qrcode.codigo),
-                        'codigo': str(qrcode.codigo)
-                    })
+                        'codigo': str(qrcode.codigo),
+                        'ambiente': {
+                            'nome': ambiente.nome,
+                            'localizacao': ambiente.localizacao,
+                        },
+                        'validade': {
+                            'inicio': qrcode.validade_inicio.strftime('%d/%m/%Y %H:%M'),
+                            'fim': qrcode.validade_fim.strftime('%d/%m/%Y %H:%M'),
+                            'inicio_iso': qrcode.validade_inicio.isoformat(),
+                            'fim_iso': qrcode.validade_fim.isoformat(),
+                        },
+                        'usuario': usuario.nome,
+                        'data_autorizacao': data_atual.strftime('%d/%m/%Y %H:%M:%S')
+                    }
+                    
+                    # Salva na sessão para uso no template detalhado
+                    request.session['qrcode_data'] = response_data
+                    
+                    return JsonResponse(response_data)
                 else:
                     inserir_acesso(data_atual, 'N', ambiente.id, usuario.id)
                     return JsonResponse({
@@ -152,5 +172,20 @@ def validar_qrcode(request):
 @login_required
 def ler_qrcode(request):
     return render(request, 'acesso/templates/ler_qrcode.html')
+
+@login_required
+def qrcode_detalhado(request):
+    """Renderiza página detalhada do QR Code com informações completas"""
+    if request.method == 'GET':
+        # Recupera dados da sessão ou parâmetros
+        qrcode_data = request.session.get('qrcode_data')
+        
+        if not qrcode_data:
+            messages.error(request, 'Nenhum QR Code válido encontrado. Gere um novo acesso.')
+            return redirect('verificar_acesso')
+        
+        return render(request, 'qrcode_detalhado.html', qrcode_data)
+    
+    return redirect('verificar_acesso')
 
 

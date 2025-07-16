@@ -48,8 +48,78 @@
                     <p class="mb-0"></p>
                 </div>
                 <div id="qrcodeContainer" class="text-center mt-3" style="display: none;">
-                    <div id="qrcode"></div>
-                    <p class="mt-2 text-muted">Apresente este QR Code para acessar o ambiente</p>
+                    <!-- Card com informações detalhadas -->
+                    <div class="card border-success">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-qr-code"></i> QR Code de Acesso
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 text-center">
+                                    <div id="qrcode" class="mb-3"></div>
+                                    <div class="d-grid gap-2">
+                                        <a href="{% url 'qrcode_detalhado' %}" id="verDetalhado" class="btn btn-success mb-2" target="_blank" style="display: none;">
+                                            <i class="bi bi-eye"></i> Ver QR Code Detalhado
+                                        </a>
+                                        <button id="downloadQR" class="btn btn-primary mb-2" style="display: none;">
+                                            <i class="bi bi-download"></i> Download Rápido
+                                        </button>
+                                    </div>
+                                    <div id="downloadFeedback" class="alert alert-success" style="display: none;">
+                                        <i class="bi bi-check-circle"></i> QR Code baixado com sucesso!
+                                    </div>
+                                    <p class="text-muted small">Apresente este QR Code para acessar o ambiente</p>
+                                </div>
+                                <div class="col-md-6 mt-3 mt-md-0">
+                                    <div class="info-details">
+                                        <h6 class="fw-bold text-success mb-3">
+                                            <i class="bi bi-info-circle"></i> Informações do Acesso
+                                        </h6>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold text-muted">Ambiente:</label>
+                                            <div id="ambienteInfo" class="bg-light p-2 rounded">
+                                                <div class="d-flex align-items-center mb-1">
+                                                    <i class="bi bi-building text-primary me-2"></i>
+                                                    <span id="ambienteNome" class="fw-bold"></span>
+                                                </div>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="bi bi-geo-alt text-secondary me-2"></i>
+                                                    <small class="text-muted">Local: <span id="ambienteLocalizacao"></span></small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold text-muted">Usuário:</label>
+                                            <div id="usuarioInfo" class="bg-light p-2 rounded">
+                                                <i class="bi bi-person text-primary"></i>
+                                                <span id="usuarioNome"></span>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold text-muted">Validade:</label>
+                                            <div class="bg-light p-2 rounded">
+                                                <div class="d-flex align-items-center mb-1">
+                                                    <i class="bi bi-calendar-check text-success me-2"></i>
+                                                    <small class="text-muted">Início:</small>
+                                                    <span id="validadeInicio" class="ms-1"></span>
+                                                </div>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="bi bi-calendar-x text-danger me-2"></i>
+                                                    <small class="text-muted">Fim:</small>
+                                                    <span id="validadeFim" class="ms-1"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             {% else %}
@@ -63,7 +133,6 @@
     </div>
 </div>
 
-<!-- Inclui a biblioteca QR Code -->
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 
 <script>
@@ -103,6 +172,215 @@
                     qr.addData(data.codigo);
                     qr.make();
                     qrcodeDiv.innerHTML = qr.createImgTag(8);
+
+                    // Mostra os botões de ação
+                    document.getElementById('verDetalhado').style.display = 'block';
+                    document.getElementById('downloadQR').style.display = 'block';
+                    
+                    console.log('QR Code gerado com sucesso, botões exibidos');
+
+                    // Preenche as informações detalhadas
+                    document.getElementById('ambienteNome').textContent = data.ambiente.nome;
+                    document.getElementById('ambienteLocalizacao').textContent = data.ambiente.localizacao;
+                    document.getElementById('usuarioNome').textContent = data.usuario;
+                    document.getElementById('validadeInicio').textContent = data.validade.inicio;
+                    document.getElementById('validadeFim').textContent = data.validade.fim;
+
+                    // Adiciona evento de download (remove listener anterior se existir)
+                    const downloadBtn = document.getElementById('downloadQR');
+                    const newDownloadBtn = downloadBtn.cloneNode(true);
+                    downloadBtn.parentNode.replaceChild(newDownloadBtn, downloadBtn);
+                    
+                    newDownloadBtn.addEventListener('click', function() {
+                        console.log('Botão download clicado');
+                        
+                        // Teste simples primeiro
+                        const qrCodeImage = document.getElementById('qrcode').querySelector('img');
+                        if (!qrCodeImage) {
+                            alert('QR Code não encontrado!');
+                            return;
+                        }
+                        
+                        console.log('QR Code encontrado, testando download simples...');
+                        
+                        // Download simples direto (teste)
+                        try {
+                            const link = document.createElement('a');
+                            link.href = qrCodeImage.src;
+                            link.download = `qrcode_${data.ambiente.nome.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().getTime()}.png`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            
+                            console.log('Download simples executado');
+                            
+                            // Mostra feedback
+                            const feedback = document.getElementById('downloadFeedback');
+                            if (feedback) {
+                                feedback.style.display = 'block';
+                                setTimeout(() => {
+                                    feedback.style.display = 'none';
+                                }, 3000);
+                            }
+                            
+                            return; // Para aqui se o download simples funcionou
+                        } catch (simpleError) {
+                            console.log('Download simples falhou, tentando método avançado...', simpleError);
+                        }
+                        
+                        const button = this;
+                        const originalText = button.innerHTML;
+                        
+                        // Mostra estado de carregamento
+                        button.innerHTML = '<i class="bi bi-cloud-download"></i> Baixando...';
+                        button.disabled = true;
+                        
+                        console.log('Buscando imagem do QR Code...');
+                        
+                        if (qrCodeImage) {
+                            console.log('Imagem encontrada:', qrCodeImage.src);
+                            
+                            // Aguarda a imagem carregar completamente
+                            if (qrCodeImage.complete) {
+                                console.log('Imagem já carregada');
+                                processDownload();
+                            } else {
+                                console.log('Aguardando imagem carregar...');
+                                qrCodeImage.onload = processDownload;
+                            }
+                            
+                            function processDownload() {
+                                console.log('Iniciando processamento do download...');
+                                
+                                try {
+                                    // Cria um canvas para converter a imagem do QR Code
+                                    const canvas = document.createElement('canvas');
+                                    const ctx = canvas.getContext('2d');
+                                    
+                                    console.log('Canvas criado, dimensões da imagem:', qrCodeImage.width, 'x', qrCodeImage.height);
+                                    
+                                    // Define o tamanho do canvas
+                                    canvas.width = qrCodeImage.width;
+                                    canvas.height = qrCodeImage.height;
+                                    
+                                    // Desenha a imagem no canvas
+                                    ctx.drawImage(qrCodeImage, 0, 0);
+                                    
+                                    console.log('Imagem desenhada no canvas, convertendo para blob...');
+                                    
+                                    // Converte para blob e faz download
+                                    canvas.toBlob(function(blob) {
+                                        console.log('Blob criado:', blob);
+                                        
+                                        if (blob) {
+                                            console.log('Iniciando download...');
+                                            const url = URL.createObjectURL(blob);
+                                            const a = document.createElement('a');
+                                            a.href = url;
+                                            a.download = `qrcode_${data.ambiente.nome.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().getTime()}.png`;
+                                            document.body.appendChild(a);
+                                            a.click();
+                                            document.body.removeChild(a);
+                                            URL.revokeObjectURL(url);
+                                            
+                                            console.log('Download iniciado com sucesso');
+                                            
+                                            // Mostra feedback de sucesso
+                                            const feedback = document.getElementById('downloadFeedback');
+                                            if (feedback) {
+                                                feedback.style.display = 'block';
+                                                setTimeout(() => {
+                                                    feedback.style.display = 'none';
+                                                }, 3000);
+                                            }
+                                        } else {
+                                            console.error('Erro ao criar blob, tentando método alternativo...');
+                                            tryAlternativeDownload();
+                                        }
+                                        
+                                        // Restaura o botão
+                                        button.innerHTML = originalText;
+                                        button.disabled = false;
+                                    }, 'image/png');
+                                } catch (error) {
+                                    console.error('Erro no processamento:', error);
+                                    console.log('Tentando método alternativo...');
+                                    tryAlternativeDownload();
+                                }
+                                
+                                // Método alternativo usando fetch
+                                function tryAlternativeDownload() {
+                                    try {
+                                        console.log('Executando download alternativo...');
+                                        
+                                        // Converte imagem data URL para fetch
+                                        fetch(qrCodeImage.src)
+                                            .then(res => res.blob())
+                                            .then(blob => {
+                                                const url = URL.createObjectURL(blob);
+                                                const a = document.createElement('a');
+                                                a.href = url;
+                                                a.download = `qrcode_${data.ambiente.nome.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().getTime()}.png`;
+                                                document.body.appendChild(a);
+                                                a.click();
+                                                document.body.removeChild(a);
+                                                URL.revokeObjectURL(url);
+                                                
+                                                console.log('Download alternativo executado com sucesso');
+                                                
+                                                // Mostra feedback de sucesso
+                                                const feedback = document.getElementById('downloadFeedback');
+                                                if (feedback) {
+                                                    feedback.style.display = 'block';
+                                                    setTimeout(() => {
+                                                        feedback.style.display = 'none';
+                                                    }, 3000);
+                                                }
+                                                
+                                                button.innerHTML = originalText;
+                                                button.disabled = false;
+                                            })
+                                            .catch(fetchError => {
+                                                console.error('Erro no download alternativo:', fetchError);
+                                                alert('Erro ao processar o download: ' + fetchError.message);
+                                                button.innerHTML = originalText;
+                                                button.disabled = false;
+                                            });
+                                    } catch (altError) {
+                                        console.error('Erro no método alternativo:', altError);
+                                        alert('Erro ao processar o download: ' + altError.message);
+                                        button.innerHTML = originalText;
+                                        button.disabled = false;
+                                    }
+                                }
+                            }
+                        } else {
+                            console.error('QR Code não encontrado');
+                            alert('QR Code não encontrado');
+                            button.innerHTML = originalText;
+                            button.disabled = false;
+                        }
+                    });
+
+                    // Verifica se o QR Code ainda é válido
+                    const agora = new Date();
+                    const validadeFim = new Date(data.validade.fim_iso);
+                    const tempoRestante = validadeFim - agora;
+                    
+                    if (tempoRestante > 0) {
+                        // Adiciona indicador de tempo restante
+                        const horasRestantes = Math.floor(tempoRestante / (1000 * 60 * 60));
+                        const minutosRestantes = Math.floor((tempoRestante % (1000 * 60 * 60)) / (1000 * 60));
+                        
+                        if (horasRestantes > 0) {
+                            document.getElementById('validadeFim').innerHTML += ` <span class="badge bg-success">${horasRestantes}h ${minutosRestantes}min restantes</span>`;
+                        } else if (minutosRestantes > 0) {
+                            document.getElementById('validadeFim').innerHTML += ` <span class="badge bg-warning">${minutosRestantes}min restantes</span>`;
+                        } else {
+                            document.getElementById('validadeFim').innerHTML += ` <span class="badge bg-danger">Expirando em breve!</span>`;
+                        }
+                    }
+
                 } else {
                     alertDiv.className = 'alert alert-danger';
                     heading.textContent = 'Acesso Negado';

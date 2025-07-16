@@ -1,0 +1,339 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code de Acesso - {{ ambiente.nome }}</title>
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .qr-card {
+            max-width: 600px;
+            margin: 2rem auto;
+            border: 2px solid #007bff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 123, 255, 0.15);
+        }
+        
+        .qr-header {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 13px 13px 0 0;
+            text-align: center;
+        }
+        
+        .qr-body {
+            padding: 2rem;
+            background: white;
+        }
+        
+        .qr-code-container {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px dashed #007bff;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .info-item {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .info-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .info-value {
+            font-size: 1.1rem;
+            color: #495057;
+            font-weight: 500;
+        }
+        
+        .validity-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .valid {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .expired {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .qr-footer {
+            background: #e9ecef;
+            padding: 1rem;
+            border-radius: 0 0 13px 13px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .qr-card {
+                margin: 1rem;
+            }
+        }
+        
+        @media print {
+            body {
+                background-color: white;
+            }
+            
+            .qr-card {
+                box-shadow: none;
+                border: 2px solid #000;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="qr-card">
+            <div class="qr-header">
+                <img src="{% static 'img/acessqr_logo.png' %}" alt="AcessQR Logo" style="max-width: 150px; margin-bottom: 1rem;">
+                <h2 class="mb-0">
+                    <i class="bi bi-qr-code me-2"></i>QR Code de Acesso
+                </h2>
+                <p class="mb-0 opacity-75">Autorização para Ambiente</p>
+            </div>
+            
+            <div class="qr-body">
+                <div class="qr-code-container">
+                    <div id="qrcode" class="mb-3"></div>
+                    <div class="mt-2">
+                        <span class="badge bg-primary fs-6">Código: {{ codigo }}</span>
+                    </div>
+                </div>
+                
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="bi bi-building me-1"></i> Ambiente
+                        </div>
+                        <div class="info-value">{{ ambiente.nome }}</div>
+                        {% if ambiente.localizacao %}
+                        <small class="text-muted">
+                            <i class="bi bi-geo-alt me-1"></i>{{ ambiente.localizacao }}
+                        </small>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="bi bi-person me-1"></i> Usuário Autorizado
+                        </div>
+                        <div class="info-value">{{ usuario }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="bi bi-calendar-check me-1"></i> Válido de
+                        </div>
+                        <div class="info-value">{{ validade.inicio }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="bi bi-calendar-x me-1"></i> Válido até
+                        </div>
+                        <div class="info-value">{{ validade.fim }}</div>
+                        <div class="mt-2">
+                            <span id="validityStatus" class="validity-badge"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3 p-3 bg-light rounded">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <small class="text-muted">
+                                <i class="bi bi-clock me-1"></i>
+                                Autorizado em: {{ data_autorizacao }}
+                            </small>
+                        </div>
+                        <div>
+                            <button onclick="window.print()" class="btn btn-outline-primary btn-sm me-2">
+                                <i class="bi bi-printer"></i> Imprimir
+                            </button>
+                            <button id="downloadBtn" class="btn btn-primary btn-sm">
+                                <i class="bi bi-download"></i> Download
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="qr-footer">
+                <small>
+                    <i class="bi bi-shield-check me-1"></i>
+                    Este QR Code é válido apenas para o usuário e período especificados.
+                    <br>
+                    Gerado pelo sistema AcessQR em {{ data_autorizacao }}
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <script>
+        // Gera o QR Code
+        const qr = qrcode(0, 'M');
+        qr.addData('{{ codigo }}');
+        qr.make();
+        document.getElementById('qrcode').innerHTML = qr.createImgTag(8);
+        
+        // Verifica validade
+        const agora = new Date();
+        const validadeFim = new Date('{{ validade.fim_iso }}');
+        const tempoRestante = validadeFim - agora;
+        const statusElement = document.getElementById('validityStatus');
+        
+        if (tempoRestante > 0) {
+            const horasRestantes = Math.floor(tempoRestante / (1000 * 60 * 60));
+            const minutosRestantes = Math.floor((tempoRestante % (1000 * 60 * 60)) / (1000 * 60));
+            
+            if (horasRestantes > 24) {
+                const diasRestantes = Math.floor(horasRestantes / 24);
+                statusElement.textContent = `Válido por ${diasRestantes} dia(s)`;
+                statusElement.className = 'validity-badge valid';
+            } else if (horasRestantes > 0) {
+                statusElement.textContent = `${horasRestantes}h ${minutosRestantes}min restantes`;
+                statusElement.className = 'validity-badge warning';
+            } else if (minutosRestantes > 0) {
+                statusElement.textContent = `${minutosRestantes}min restantes`;
+                statusElement.className = 'validity-badge warning';
+            } else {
+                statusElement.textContent = 'Expirando em breve!';
+                statusElement.className = 'validity-badge expired';
+            }
+        } else {
+            statusElement.textContent = 'EXPIRADO';
+            statusElement.className = 'validity-badge expired';
+        }
+        
+        // Função de download que captura toda a área do QR Code com informações
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            const button = this;
+            const originalText = button.innerHTML;
+            
+            button.innerHTML = '<i class="bi bi-cloud-download"></i> Baixando...';
+            button.disabled = true;
+            
+                    // Usa html2canvas para capturar toda a área
+        if (typeof html2canvas === 'undefined') {
+            // Fallback: captura apenas o QR Code
+            const qrCodeImage = document.getElementById('qrcode').querySelector('img');
+            if (qrCodeImage) {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                img.onload = function() {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    canvas.toBlob(function(blob) {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `qrcode_{{ ambiente.nome|slugify }}_{{ data_autorizacao|date:"Y-m-d_H-i" }}.png`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                    });
+                };
+                img.src = qrCodeImage.src;
+            }
+            return;
+        }
+        
+        html2canvas(document.querySelector('.qr-card'), {
+            allowTaint: true,
+            useCORS: true,
+            scale: 2, // Melhor qualidade
+            backgroundColor: '#ffffff'
+        }).then(canvas => {
+                // Converte para blob e faz download
+                canvas.toBlob(function(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `qrcode_{{ ambiente.nome|slugify }}_{{ data_autorizacao|date:"Y-m-d_H-i" }}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    // Restaura o botão
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                    
+                    // Feedback
+                    const originalBg = button.className;
+                    button.className = 'btn btn-success btn-sm';
+                    button.innerHTML = '<i class="bi bi-check"></i> Baixado!';
+                    setTimeout(() => {
+                        button.className = originalBg;
+                        button.innerHTML = originalText;
+                    }, 2000);
+                });
+            }).catch(err => {
+                console.error('Erro ao gerar imagem:', err);
+                button.innerHTML = originalText;
+                button.disabled = false;
+                alert('Erro ao baixar o arquivo. Tente usar a função imprimir.');
+            });
+        });
+    </script>
+    
+    <!-- html2canvas para captura de tela -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</body>
+</html> 
